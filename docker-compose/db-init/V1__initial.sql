@@ -7,7 +7,7 @@ create table course
     description             TEXT,
     price                   DECIMAL(10,2)   NOT NULL,
     duration                INTEGER         NOT NULL,
-    start_date              TIMESTAMP,
+    start_date              TIMESTAMP       NOT NULL,
     last_update_date        TIMESTAMP       NOT NULL,
     course_type             course_type     NOT NULL
 );
