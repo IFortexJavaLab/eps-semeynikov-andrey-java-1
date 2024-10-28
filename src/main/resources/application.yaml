@@ -1,0 +1,9 @@
+datasource:
+  driver: org.postgresql.Driver
+  username: ifortex
+  password: ifortex
+  url: jdbc:postgresql://localhost:5433/education_db
+
+spring:
+  profiles:
+    active: dev
