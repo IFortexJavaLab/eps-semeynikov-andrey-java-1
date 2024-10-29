@@ -1,6 +1,6 @@
 package com.ifortex.internship.model;
 
-import com.ifortex.internship.model.enumiration.CourseStatus;
+import com.ifortex.internship.model.enumeration.CourseStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
