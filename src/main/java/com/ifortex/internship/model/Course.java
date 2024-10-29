@@ -8,18 +8,20 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Course {
-  int id;
-  String name;
-  String description;
-  double price;
-  int duration;
-  LocalDate startDate;
-  LocalDateTime lastUpdatedDate;
-  CourseStatus courseStatus;
+  private int id;
+  private String name;
+  private String description;
+  private double price;
+  private int duration;
+  private LocalDate startDate;
+  private LocalDateTime lastUpdatedDate;
+  private CourseStatus courseStatus;
+  private Set<Student> studentSet;
 }
