@@ -16,7 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class AppConfig implements WebMvcConfigurer {
 
   @Bean
-  public static PropertySourcesPlaceholderConfigurer propertyConfigurer() {
+  public PropertySourcesPlaceholderConfigurer propertyConfigurer() {
     YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
     yamlFactory.setResources(new ClassPathResource("application.yaml"));
 
