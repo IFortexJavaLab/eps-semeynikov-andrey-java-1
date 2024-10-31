@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -15,10 +16,10 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Course {
-  private int id;
+  private long id;
   private String name;
   private String description;
-  private double price;
+  private BigDecimal price;
   private int duration;
   private LocalDate startDate;
   private LocalDateTime lastUpdatedDate;
