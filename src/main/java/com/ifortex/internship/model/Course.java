@@ -1,15 +1,13 @@
 package com.ifortex.internship.model;
 
 import com.ifortex.internship.model.enumeration.CourseStatus;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -21,7 +19,7 @@ public class Course {
   private String description;
   private BigDecimal price;
   private int duration;
-  private LocalDate startDate;
+  private LocalDateTime startDate;
   private LocalDateTime lastUpdatedDate;
   private CourseStatus courseStatus;
   private Set<Student> studentSet;
