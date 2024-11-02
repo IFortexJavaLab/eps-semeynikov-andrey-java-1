@@ -11,7 +11,7 @@ public interface CourseDAO {
 
   List<Course> findAll();
 
-  void update(long id, Course course);
+  void update(Course course);
 
   void delete(long id);
 }

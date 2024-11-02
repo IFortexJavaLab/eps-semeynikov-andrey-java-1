@@ -17,7 +17,7 @@ public class CourseRowMapper implements RowMapper<Course> {
     course.setPrice(rs.getBigDecimal("price"));
     course.setDuration(rs.getInt("duration"));
     course.setStartDate(rs.getTimestamp("start_date").toLocalDateTime());
-    course.setLastUpdatedDate(rs.getTimestamp("last_update_date").toLocalDateTime());
+    course.setLastUpdateDate(rs.getTimestamp("last_update_date").toLocalDateTime());
     course.setCourseStatus(CourseStatus.valueOf(rs.getString("course_status")));
     return course;
   }

@@ -33,16 +33,14 @@ public class CourseDAOImpl implements CourseDAO {
         course.getPrice(),
         course.getDuration(),
         course.getStartDate(),
-        course.getLastUpdatedDate(),
+        course.getLastUpdateDate(),
         course.getCourseStatus().name());
   }
 
   @Override
   public Optional<Course> find(long id) {
     String sql = "SELECT * FROM course WHERE id = ?";
-    Course course =
-        jdbcTemplate.query(
-            sql, new Object[] {id}, rs -> rs.next() ? courseRowMapper.mapRow(rs, 1) : null);
+    Optional<Course> course = jdbcTemplate.query(sql, courseRowMapper, id).stream().findFirst();
 
     Set<Student> students =
         Set.copyOf(
@@ -50,9 +48,9 @@ public class CourseDAOImpl implements CourseDAO {
                 "SELECT s.* FROM student s JOIN course_student cs ON s.id = cs.student_id WHERE cs.course_id = ?",
                 studentRowMapper,
                 id));
-    if (course != null) {
-      course.setStudentSet(students);
-      return Optional.of(course);
+    if (course.isPresent()) {
+      course.get().setStudentSet(students);
+      return course;
     }
     return Optional.empty();
   }
@@ -74,7 +72,7 @@ public class CourseDAOImpl implements CourseDAO {
   }
 
   @Override
-  public void update(long id, Course course) {
+  public void update(Course course) {
     String sql =
         "UPDATE course SET name = ?, description = ?, price = ?, duration = ?, start_date = ?, last_update_date = ?, course_status = ?::course_status  WHERE id = ?";
     jdbcTemplate.update(
@@ -84,9 +82,9 @@ public class CourseDAOImpl implements CourseDAO {
         course.getPrice(),
         course.getDuration(),
         course.getStartDate(),
-        course.getLastUpdatedDate(),
+        course.getLastUpdateDate(),
         course.getCourseStatus().name(),
-        id);
+        course.getId());
   }
 
   @Override

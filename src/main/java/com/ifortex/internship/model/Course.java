@@ -1,5 +1,7 @@
 package com.ifortex.internship.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ifortex.internship.model.enumeration.CourseStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,8 +21,15 @@ public class Course {
   private String description;
   private BigDecimal price;
   private int duration;
+
+  @JsonProperty("startDate")
+  @JsonFormat(shape = JsonFormat.Shape.STRING)
   private LocalDateTime startDate;
-  private LocalDateTime lastUpdatedDate;
+
+  @JsonProperty("lastUpdateDate")
+  @JsonFormat(shape = JsonFormat.Shape.STRING)
+  private LocalDateTime lastUpdateDate;
+
   private CourseStatus courseStatus;
   private Set<Student> studentSet;
 }

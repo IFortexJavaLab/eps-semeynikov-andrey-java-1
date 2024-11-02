@@ -26,11 +26,7 @@ public class StudentDAOImpl implements StudentDAO {
   @Override
   public Optional<Student> find(long id) {
     String sql = "SELECT * FROM student WHERE id = ?";
-    Student student =
-        jdbcTemplate.query(
-            sql, new Object[] {id}, rs -> rs.next() ? studentRowMapper.mapRow(rs, 1) : null);
-
-    return Optional.ofNullable(student);
+    return jdbcTemplate.query(sql, studentRowMapper, id).stream().findFirst();
   }
 
   @Override
@@ -40,13 +36,14 @@ public class StudentDAOImpl implements StudentDAO {
   }
 
   @Override
-  public void update(long id, Student student) {
+  public void update(Student student) {
     String sql = "UPDATE student SET name = ? WHERE id = ?";
-    jdbcTemplate.update(sql, student.getName(), id);
+    jdbcTemplate.update(sql, student.getName(), student.getId());
   }
 
   @Override
   public void delete(long id) {
-    jdbcTemplate.update("DELETE FROM student WHERE id = ?", id);
+    String sql = "DELETE FROM student WHERE id = ?";
+    jdbcTemplate.update(sql, id);
   }
 }
