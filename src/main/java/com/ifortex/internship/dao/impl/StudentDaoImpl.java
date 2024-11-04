@@ -1,6 +1,7 @@
-package com.ifortex.internship.DAO;
+package com.ifortex.internship.dao.impl;
 
-import com.ifortex.internship.DAO.mapper.StudentRowMapper;
+import com.ifortex.internship.dao.StudentDao;
+import com.ifortex.internship.dao.mapper.StudentRowMapper;
 import com.ifortex.internship.model.Student;
 import java.util.List;
 import java.util.Optional;
@@ -9,11 +10,11 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class StudentDAOImpl implements StudentDAO {
+public class StudentDaoImpl implements StudentDao {
   private final JdbcTemplate jdbcTemplate;
   private final RowMapper<Student> studentRowMapper = new StudentRowMapper();
 
-  public StudentDAOImpl(JdbcTemplate jdbcTemplate) {
+  public StudentDaoImpl(JdbcTemplate jdbcTemplate) {
     this.jdbcTemplate = jdbcTemplate;
   }
 
