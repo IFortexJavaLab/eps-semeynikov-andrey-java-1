@@ -31,5 +31,5 @@ public class Course {
   private LocalDateTime lastUpdateDate;
 
   private CourseStatus courseStatus;
-  private Set<Student> studentSet;
+  private Set<Student> students;
 }
