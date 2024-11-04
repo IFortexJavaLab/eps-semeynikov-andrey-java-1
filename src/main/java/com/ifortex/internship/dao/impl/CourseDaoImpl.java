@@ -1,7 +1,6 @@
-package com.ifortex.internship.DAO;
+package com.ifortex.internship.dao.impl;
 
-import com.ifortex.internship.DAO.mapper.CourseRowMapper;
-import com.ifortex.internship.DAO.mapper.StudentRowMapper;
+import com.ifortex.internship.dao.CourseDao;
 import com.ifortex.internship.model.Course;
 import com.ifortex.internship.model.Student;
 import java.util.HashSet;
@@ -13,13 +12,18 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class CourseDAOImpl implements CourseDAO {
+public class CourseDaoImpl implements CourseDao {
   private final JdbcTemplate jdbcTemplate;
-  private final RowMapper<Course> courseRowMapper = new CourseRowMapper();
-  private final RowMapper<Student> studentRowMapper = new StudentRowMapper();
+  private final RowMapper<Course> courseRowMapper;
+  private final RowMapper<Student> studentRowMapper;
 
-  public CourseDAOImpl(JdbcTemplate jdbcTemplate) {
+  public CourseDaoImpl(
+      JdbcTemplate jdbcTemplate,
+      RowMapper<Course> courseRowMapper,
+      RowMapper<Student> studentRowMapper) {
     this.jdbcTemplate = jdbcTemplate;
+    this.courseRowMapper = courseRowMapper;
+    this.studentRowMapper = studentRowMapper;
   }
 
   @Override
@@ -48,17 +52,18 @@ public class CourseDAOImpl implements CourseDAO {
                 "SELECT s.* FROM student s JOIN course_student cs ON s.id = cs.student_id WHERE cs.course_id = ?",
                 studentRowMapper,
                 id));
-    if (course.isPresent()) {
-      course.get().setStudentSet(students);
-      return course;
-    }
-    return Optional.empty();
+
+    return course.map(
+        c -> {
+          c.setStudentSet(students);
+          return c;
+        });
   }
 
   @Override
   public List<Course> findAll() {
     String sql = "SELECT * FROM course";
-    List<Course> courses = jdbcTemplate.query(sql, new CourseRowMapper());
+    List<Course> courses = jdbcTemplate.query(sql, courseRowMapper);
 
     for (Course course : courses) {
       String studentSql =

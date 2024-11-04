@@ -1,12 +1,14 @@
-package com.ifortex.internship.DAO.mapper;
+package com.ifortex.internship.dao.mapper;
 
 import com.ifortex.internship.model.Course;
 import com.ifortex.internship.model.enumeration.CourseStatus;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+@Component
 public class CourseRowMapper implements RowMapper<Course> {
   @Override
   public Course mapRow(ResultSet rs, int rowNum) throws SQLException {
