@@ -2,11 +2,12 @@ package com.ifortex.internship.dao;
 
 import com.ifortex.internship.model.Student;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * Data Access Object (DAO) interface for managing {@link Student} entities. Provides methods to
- * perform CRUD operations on student data in the database.
+ * perform CRUD operations and manage student data in the database.
  */
 public interface StudentDao {
 
@@ -21,7 +22,7 @@ public interface StudentDao {
    * Retrieves a student by its id.
    *
    * @param id the id of the student to retrieve.
-   * @return an {@link Optional} containing the student if found, or empty Optional if not.
+   * @return an {@link Optional} containing the student if found, or an empty Optional if not.
    */
   Optional<Student> find(long id);
 
@@ -33,16 +34,17 @@ public interface StudentDao {
   List<Student> findAll();
 
   /**
-   * Updates an existing student record in the database.
+   * Updates an existing student record in the database with specified field-value mappings.
    *
-   * @param student the student entity with updated information.
+   * @param id the id of the student to update.
+   * @param valuesToUpdate a map of field names and their new values for the student update.
    */
-  void update(Student student);
+  void update(long id, Map<String, Object> valuesToUpdate);
 
   /**
    * Deletes a student record by its id.
    *
-   * @param id the id of the student to delete
+   * @param id the id of the student to delete.
    */
   void delete(long id);
 }
