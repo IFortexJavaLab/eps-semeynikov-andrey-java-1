@@ -12,11 +12,16 @@ import java.util.Optional;
 public interface StudentDao {
 
   /**
-   * Creates a new student record in the database.
+   * Creates a new student record in the database and assigns the generated id to the student
+   * entity.
    *
-   * @param student the student entity to be created.
+   * <p>This method inserts the student's name into the database. The database-generated student id
+   * is then set on the provided student entity.
+   *
+   * @param student the student entity to be created, containing at least the student's name.
+   * @return the student entity.
    */
-  void create(Student student);
+  Student create(Student student);
 
   /**
    * Retrieves a student by its id.

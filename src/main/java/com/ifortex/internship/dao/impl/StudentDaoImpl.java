@@ -2,12 +2,15 @@ package com.ifortex.internship.dao.impl;
 
 import com.ifortex.internship.dao.StudentDao;
 import com.ifortex.internship.model.Student;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,9 +24,18 @@ public class StudentDaoImpl implements StudentDao {
   }
 
   @Override
-  public void create(Student student) {
+  public Student create(Student student) {
+    KeyHolder keyHolder = new GeneratedKeyHolder();
     String sql = "INSERT INTO student (name) VALUES (?)";
-    jdbcTemplate.update(sql, student.getName());
+    jdbcTemplate.update(
+        connection -> {
+          PreparedStatement ps = connection.prepareStatement(sql, new String[] {"id"});
+          ps.setString(1, student.getName());
+          return ps;
+        },
+        keyHolder);
+    student.setId(keyHolder.getKey().longValue());
+    return student;
   }
 
   @Override
@@ -40,21 +52,19 @@ public class StudentDaoImpl implements StudentDao {
 
   @Override
   public void update(long id, Map<String, Object> updates) {
-
-    StringBuilder sql = new StringBuilder("UPDATE student SET ");
+    List<String> setClauses = new ArrayList<>();
     List<Object> params = new ArrayList<>();
 
     updates.forEach(
         (field, value) -> {
-          sql.append(field).append(" = ?, ");
+          setClauses.add(field + " = ?");
           params.add(value);
         });
 
-    sql.setLength(sql.length() - 2);
-    sql.append(" WHERE id = ?");
+    String sql = "UPDATE student SET " + String.join(", ", setClauses) + " WHERE id = ?";
     params.add(id);
 
-    jdbcTemplate.update(sql.toString(), params.toArray());
+    jdbcTemplate.update(sql, params.toArray());
   }
 
   @Override
