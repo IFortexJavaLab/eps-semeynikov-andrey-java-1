@@ -3,18 +3,21 @@ package com.ifortex.internship.dao.impl;
 import com.ifortex.internship.dao.CourseDao;
 import com.ifortex.internship.dao.mapper.CourseWithStudentsExtractor;
 import com.ifortex.internship.model.Course;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public class CourseDaoImpl implements CourseDao {
   private final JdbcTemplate jdbcTemplate;
-  private final ResultSetExtractor<List<Course>> courseWithStudentsExtractor;
+  private final CourseWithStudentsExtractor courseWithStudentsExtractor;
 
   public CourseDaoImpl(
       JdbcTemplate jdbcTemplate, CourseWithStudentsExtractor courseWithStudentsExtractor) {
@@ -23,19 +26,27 @@ public class CourseDaoImpl implements CourseDao {
   }
 
   @Override
-  public void create(Course course) {
+  public Course create(Course course) {
+    KeyHolder keyHolder = new GeneratedKeyHolder();
     String sql =
         "INSERT INTO course (name, description, price, duration, start_date, last_update_date, course_status)"
             + "VALUES (?, ?, ?, ?, ?, ?, ?::course_status)";
     jdbcTemplate.update(
-        sql,
-        course.getName(),
-        course.getDescription(),
-        course.getPrice(),
-        course.getDuration(),
-        course.getStartDate(),
-        course.getLastUpdateDate(),
-        course.getCourseStatus().name());
+        connection -> {
+          PreparedStatement ps = connection.prepareStatement(sql, new String[] {"id"});
+          ps.setString(1, course.getName());
+          ps.setString(2, course.getDescription());
+          ps.setBigDecimal(3, course.getPrice());
+          ps.setInt(4, course.getDuration());
+          ps.setObject(5, course.getStartDate());
+          ps.setObject(6, course.getLastUpdateDate());
+          ps.setString(7, course.getCourseStatus().name());
+          return ps;
+        },
+        keyHolder);
+    course.setId(keyHolder.getKey().longValue());
+    course.setStudents(new HashSet<>());
+    return course;
   }
 
   @Override
@@ -74,28 +85,28 @@ public class CourseDaoImpl implements CourseDao {
             + "s.id AS student_id, "
             + "s.name AS student_name "
             + "FROM course c "
-            + "JOIN course_student cs ON c.id = cs.course_id "
-            + "JOIN student s ON cs.student_id = s.id";
+            + "LEFT JOIN course_student cs ON c.id = cs.course_id "
+            + "LEFT JOIN student s ON cs.student_id = s.id";
 
     return jdbcTemplate.query(sql, courseWithStudentsExtractor);
   }
 
   @Override
   public void update(long id, Map<String, Object> updates) {
-    StringBuilder sql = new StringBuilder("UPDATE course SET ");
+    List<String> setClauses = new ArrayList<>();
     List<Object> params = new ArrayList<>();
 
     updates.forEach(
         (field, value) -> {
-          sql.append(field).append(" = ?, ");
+          if ("course_status".equals(field)) setClauses.add(field + " = ?::course_status");
+          else setClauses.add(field + " = ?");
           params.add(value);
         });
 
-    sql.setLength(sql.length() - 2);
-    sql.append(" WHERE id = ?");
+    String sql = "UPDATE course SET " + String.join(", ", setClauses) + " WHERE id = ?";
     params.add(id);
 
-    jdbcTemplate.update(sql.toString(), params.toArray());
+    jdbcTemplate.update(sql, params.toArray());
   }
 
   @Override
