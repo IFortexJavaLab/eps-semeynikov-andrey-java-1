@@ -1,4 +1,4 @@
-CREATE TYPE course_type AS ENUM ('OPENED', 'CLOSED');
+CREATE TYPE course_status AS ENUM ('OPENED', 'CLOSED');
 
 CREATE TABLE IF NOT EXISTS course
 (
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS course
     duration         INTEGER        NOT NULL,
     start_date       TIMESTAMP      NOT NULL,
     last_update_date TIMESTAMP      NOT NULL,
-    course_type      course_type    NOT NULL
+    course_status    course_status  NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS student
@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS student
 
 CREATE TABLE IF NOT EXISTS course_student
 (
-    course_id  INTEGER,
-    student_id INTEGER,
+    course_id  BIGINT,
+    student_id BIGINT,
     PRIMARY KEY (course_id, student_id),
     FOREIGN KEY (course_id) REFERENCES course (id) ON DELETE CASCADE,
     Foreign Key (student_id) REFERENCES student (id) ON DELETE CASCADE
@@ -34,10 +34,10 @@ WITH gen_courses AS (SELECT 'Course ' || gs::text                               
                             (30 + (gs % 5) * 15)                                         AS duration,
                             (CURRENT_DATE + interval '1 day' * (gs % 30))::timestamp     AS start_date,
                             (CURRENT_TIMESTAMP - interval '1 day' * (gs % 7))::timestamp AS last_update_date,
-                            'OPENED'::course_type                                        AS course_type
+                            'OPENED'::course_status                                      AS course_status
                      FROM generate_series(1, 1000) AS gs)
 INSERT
-INTO course (name, description, price, duration, start_date, last_update_date, course_type)
+INTO course (name, description, price, duration, start_date, last_update_date, course_status)
 SELECT *
 FROM gen_courses;
 
