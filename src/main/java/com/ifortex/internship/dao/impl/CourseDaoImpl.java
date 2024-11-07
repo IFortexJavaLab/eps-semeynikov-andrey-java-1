@@ -98,8 +98,12 @@ public class CourseDaoImpl implements CourseDao {
 
     updates.forEach(
         (field, value) -> {
-          if ("course_status".equals(field)) setClauses.add(field + " = ?::course_status");
-          else setClauses.add(field + " = ?");
+          if ("course_status".equals(field)){
+              setClauses.add(field + " = ?::course_status");
+          }
+          else{
+              setClauses.add(field + " = ?");
+          }
           params.add(value);
         });
 
