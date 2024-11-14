@@ -2,8 +2,8 @@ package com.ifortex.internship.dao.impl;
 
 import com.ifortex.internship.dao.CourseDao;
 import com.ifortex.internship.dao.mapper.CourseWithStudentsExtractor;
-import com.ifortex.internship.model.enumeration.CourseField;
 import com.ifortex.internship.model.Course;
+import com.ifortex.internship.model.enumeration.CourseField;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,7 +31,7 @@ public class CourseDaoImpl implements CourseDao {
     KeyHolder keyHolder = new GeneratedKeyHolder();
     String sql =
         "INSERT INTO course (name, description, price, duration, start_date, last_update_date, course_status)"
-            + "VALUES (?, ?, ?, ?, ?, ?, ?::course_status)";
+            + "VALUES (?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         connection -> {
           PreparedStatement ps = connection.prepareStatement(sql, new String[] {"id"});
@@ -99,11 +99,7 @@ public class CourseDaoImpl implements CourseDao {
 
     updates.forEach(
         (field, value) -> {
-          if (CourseField.COURSE_STATUS.equals(field)) {
-            setClauses.add(field + " = ?::course_status");
-          } else {
-            setClauses.add(field + " = ?");
-          }
+          setClauses.add(field + " = ?");
           params.add(value);
         });
 
