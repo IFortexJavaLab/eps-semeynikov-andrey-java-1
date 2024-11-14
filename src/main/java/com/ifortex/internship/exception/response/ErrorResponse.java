@@ -1,7 +1,9 @@
 package com.ifortex.internship.exception.response;
 
+import com.ifortex.internship.exception.codes.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -11,6 +13,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class ErrorResponse {
 
   /**
@@ -21,7 +24,7 @@ public class ErrorResponse {
 
   /**
    * A unique integer code representing the specific type of error, often based on {@link
-   * com.ifortex.internship.exception.codes.ErrorCode}.
+   * ErrorCode}.
    */
   private int errorCode;
 }

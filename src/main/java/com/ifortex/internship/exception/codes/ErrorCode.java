@@ -1,5 +1,9 @@
 package com.ifortex.internship.exception.codes;
 
+import com.ifortex.internship.dto.CourseDto;
+import com.ifortex.internship.dto.StudentDto;
+import com.ifortex.internship.model.Course;
+import com.ifortex.internship.model.Student;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -8,41 +12,34 @@ import lombok.Getter;
  * application.
  *
  * <p>Each error code consists of a unique integer code and a default message that provides
- * information about the type of error encountered.
+ * information about the type of error encountered. These codes help categorize errors and make it
+ * easier to handle specific cases in the application, such as resource not found, validation
+ * failures, and enrollment-related errors.
  */
 @Getter
 @AllArgsConstructor
 public enum ErrorCode {
 
-  /**
-   * Error code indicating that a requested {@link com.ifortex.internship.model.Student} resource
-   * was not found.
-   */
+  /** Error code indicating that a requested {@link Student} resource was not found. */
   STUDENT_NOT_FOUND(40401, "Requested resource not found"),
 
-  /**
-   * Error code indicating that a requested {@link com.ifortex.internship.model.Course} resource was
-   * not found.
-   */
+  /** Error code indicating that a requested {@link Course} resource was not found. */
   COURSE_NOT_FOUND(40402, "Requested resource not found"),
 
-  /**
-   * Error code indicating that the enrollment limit has been exceeded for the specified {@link
-   * com.ifortex.internship.model.Course}.
-   */
+  /** Error code indicating that the enrollment limit has been exceeded for the specified Course. */
   ENROLLMENT_LIMIT_EXCEEDED(40302, "Enrollment limit exceeded for course"),
 
-  /**
-   * Error code indicating that a {@link com.ifortex.internship.model.Student} is already enrolled
-   * in the specified {@link com.ifortex.internship.model.Course}.
-   */
-  DUPLICATE_ENROLLMENT(40902, "Student already enrolled in course"),
+  /** Error code indicating a failure during the enrollment process. */
+  ENROLLMENT_FAILED(40902, "Error during enrollment"),
 
-  /**
-   * Error code indicating that the {@link com.ifortex.internship.model.Student} is not enrolled in
-   * the specified {@link com.ifortex.internship.model.Course}.
-   */
-  STUDENT_NOT_ENROLLED(40903, "Student is not enrolled in course");
+  /** Error code indicating a failure when attempting to delete a student from a course. */
+  DELETION_FROM_COURSE_FAILED(40902, "Error during deletion student from course"),
+
+  /** Error code indicating a validation failure for the {@link StudentDto}. */
+  STUDENT_DTO_VALIDATION_FAILED(40601, "Validation failed for provided data"),
+
+  /** Error code indicating a validation failure for the {@link CourseDto}. */
+  COURSE_DTO_VALIDATION_FAILED(40602, "Validation failed for provided data");
 
   /** The unique error code representing the specific type of error. */
   private final int code;
@@ -50,3 +47,8 @@ public enum ErrorCode {
   /** The default message associated with this error code, providing details of the error. */
   private final String defaultMessage;
 }
+
+/*
+DUPLICATE_ENROLLMENT(40902, "Student already enrolled in course"),
+STUDENT_NOT_ENROLLED(40903, "Student is not enrolled in course"),
+*/
