@@ -7,6 +7,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -24,5 +25,10 @@ public class AppConfig implements WebMvcConfigurer {
         new PropertySourcesPlaceholderConfigurer();
     propertiesConfigurer.setProperties(Objects.requireNonNull(yamlFactory.getObject()));
     return propertiesConfigurer;
+  }
+
+  @Bean
+  public LocalValidatorFactoryBean validator() {
+    return new LocalValidatorFactoryBean();
   }
 }
