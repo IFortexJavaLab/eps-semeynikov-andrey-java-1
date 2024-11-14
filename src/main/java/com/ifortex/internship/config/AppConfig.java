@@ -1,7 +1,7 @@
 package com.ifortex.internship.config;
 
+import com.zaxxer.hikari.HikariDataSource;
 import java.util.Objects;
-import javax.sql.DataSource;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -39,7 +39,7 @@ public class AppConfig implements WebMvcConfigurer {
   }
 
   @Bean
-  public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+  public DataSourceTransactionManager transactionManager(HikariDataSource dataSource) {
     return new DataSourceTransactionManager(dataSource);
   }
 }
