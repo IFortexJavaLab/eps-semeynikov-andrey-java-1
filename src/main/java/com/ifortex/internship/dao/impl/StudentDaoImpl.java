@@ -1,6 +1,7 @@
 package com.ifortex.internship.dao.impl;
 
 import com.ifortex.internship.dao.StudentDao;
+import com.ifortex.internship.model.enumeration.StudentField;
 import com.ifortex.internship.model.Student;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ public class StudentDaoImpl implements StudentDao {
   }
 
   @Override
-  public void update(long id, Map<String, Object> updates) {
+  public void update(long id, Map<StudentField, Object> updates) {
     List<String> setClauses = new ArrayList<>();
     List<Object> params = new ArrayList<>();
 

@@ -2,6 +2,7 @@ package com.ifortex.internship.dao.impl;
 
 import com.ifortex.internship.dao.CourseDao;
 import com.ifortex.internship.dao.mapper.CourseWithStudentsExtractor;
+import com.ifortex.internship.model.enumeration.CourseField;
 import com.ifortex.internship.model.Course;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
@@ -92,17 +93,16 @@ public class CourseDaoImpl implements CourseDao {
   }
 
   @Override
-  public void update(long id, Map<String, Object> updates) {
+  public void update(long id, Map<CourseField, Object> updates) {
     List<String> setClauses = new ArrayList<>();
     List<Object> params = new ArrayList<>();
 
     updates.forEach(
         (field, value) -> {
-          if ("course_status".equals(field)){
-              setClauses.add(field + " = ?::course_status");
-          }
-          else{
-              setClauses.add(field + " = ?");
+          if (CourseField.COURSE_STATUS.equals(field)) {
+            setClauses.add(field + " = ?::course_status");
+          } else {
+            setClauses.add(field + " = ?");
           }
           params.add(value);
         });

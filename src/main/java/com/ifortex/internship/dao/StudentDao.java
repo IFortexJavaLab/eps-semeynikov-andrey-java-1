@@ -1,5 +1,6 @@
 package com.ifortex.internship.dao;
 
+import com.ifortex.internship.model.enumeration.StudentField;
 import com.ifortex.internship.model.Student;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,7 @@ public interface StudentDao {
    * @param id the id of the student to update.
    * @param valuesToUpdate a map of field names and their new values for the student update.
    */
-  void update(long id, Map<String, Object> valuesToUpdate);
+  void update(long id, Map<StudentField, Object> valuesToUpdate);
 
   /**
    * Deletes a student record by its id.
