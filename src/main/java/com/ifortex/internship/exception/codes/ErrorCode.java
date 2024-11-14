@@ -27,19 +27,22 @@ public enum ErrorCode {
   COURSE_NOT_FOUND(40402, "Requested resource not found"),
 
   /** Error code indicating that the enrollment limit has been exceeded for the specified Course. */
-  ENROLLMENT_LIMIT_EXCEEDED(40302, "Enrollment limit exceeded for course"),
+  ENROLLMENT_LIMIT_EXCEEDED(40302, "Enrollment limit exceeded for the course"),
 
   /** Error code indicating a failure during the enrollment process. */
-  ENROLLMENT_FAILED(40902, "Error during enrollment"),
+  ENROLLMENT_FAILED(40902, "Error during an enrollment"),
 
   /** Error code indicating a failure when attempting to delete a student from a course. */
-  DELETION_FROM_COURSE_FAILED(40902, "Error during deletion student from course"),
+  DELETION_FROM_COURSE_FAILED(40902, "Error during deletion students from the course"),
 
   /** Error code indicating a validation failure for the {@link StudentDto}. */
-  STUDENT_DTO_VALIDATION_FAILED(40601, "Validation failed for provided data"),
+  STUDENT_DTO_VALIDATION_FAILED(40601, "Validation failed for the provided data"),
 
   /** Error code indicating a validation failure for the {@link CourseDto}. */
-  COURSE_DTO_VALIDATION_FAILED(40602, "Validation failed for provided data");
+  COURSE_DTO_VALIDATION_FAILED(40602, "Validation failed for the provided data"),
+
+  /** Error code indicating a failure when attempting change course after start */
+  COURSE_HAS_ALREADY_STARTED(40602, "Course has already started");
 
   /** The unique error code representing the specific type of error. */
   private final int code;
@@ -47,8 +50,3 @@ public enum ErrorCode {
   /** The default message associated with this error code, providing details of the error. */
   private final String defaultMessage;
 }
-
-/*
-DUPLICATE_ENROLLMENT(40902, "Student already enrolled in course"),
-STUDENT_NOT_ENROLLED(40903, "Student is not enrolled in course"),
-*/
