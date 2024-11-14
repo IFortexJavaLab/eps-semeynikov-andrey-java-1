@@ -23,6 +23,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -124,19 +125,42 @@ public class CourseServiceImpl implements CourseService {
 
   @Override
   public void delete(long id) {
-    courseDao.find(id).orElseThrow(() -> new ResourceNotFoundException(ErrorCode.STUDENT_NOT_FOUND, id));
+    courseDao
+        .find(id)
+        .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.STUDENT_NOT_FOUND, id));
     courseDao.delete(id);
   }
 
   @Override
   public CourseStudentUpdateDto enrollStudents(long courseId, List<Long> studentIds) {
 
-    if (studentIds.isEmpty()) throw new EnrollmentException(ErrorCode.ENROLLMENT_FAILED);
+    if (studentIds == null || studentIds.isEmpty()) {
+      throw new EnrollmentException(
+          ErrorCode.ENROLLMENT_FAILED, "List of the student's ids is empty");
+    }
+
+    if (studentIds.stream().anyMatch(id -> id == null || id <= 0)) {
+      throw new EnrollmentException(
+          ErrorCode.ENROLLMENT_FAILED, "List contains invalid student ids");
+    }
+
+    Set<Long> uniqueIds = new HashSet<>(studentIds);
+    if (uniqueIds.size() != studentIds.size()) {
+      throw new EnrollmentException(
+          ErrorCode.ENROLLMENT_FAILED, "List contains duplicate student ids");
+    }
 
     Course course =
         courseDao
             .find(courseId)
-            .orElseThrow(() -> new EnrollmentException(ErrorCode.ENROLLMENT_FAILED));
+            .orElseThrow(
+                () ->
+                    new EnrollmentException(
+                        ErrorCode.ENROLLMENT_FAILED,
+                        String.format("Course with id = %d is not found", courseId)));
+
+    if (course.getCourseStatus() != CourseStatus.OPENED)
+      throw new EnrollmentException(ErrorCode.ENROLLMENT_FAILED, "Course is not opened");
 
     List<Student> students =
         studentIds.stream()
@@ -144,7 +168,11 @@ public class CourseServiceImpl implements CourseService {
                 id ->
                     studentDao
                         .find(id)
-                        .orElseThrow(() -> new EnrollmentException(ErrorCode.ENROLLMENT_FAILED)))
+                        .orElseThrow(
+                            () ->
+                                new EnrollmentException(
+                                    ErrorCode.ENROLLMENT_FAILED,
+                                    String.format("Student with id = %d is not found", id))))
             .toList();
 
     students.stream()
@@ -152,7 +180,11 @@ public class CourseServiceImpl implements CourseService {
         .findFirst()
         .ifPresent(
             student -> {
-              throw new EnrollmentException(ErrorCode.ENROLLMENT_FAILED);
+              throw new EnrollmentException(
+                  ErrorCode.ENROLLMENT_FAILED,
+                  String.format(
+                      "Student with id = %d is enrolled on the course with id = %d",
+                      student.getId(), courseId));
             });
 
     if (course.getStudents().size() + students.size() <= 150) {
@@ -165,28 +197,36 @@ public class CourseServiceImpl implements CourseService {
       throw new EnrollmentLimitExceededException(ErrorCode.ENROLLMENT_LIMIT_EXCEEDED, courseId);
     }
 
-    // TODO add logic about open closed course depending on the number of students
-    // check courseStatus after enrollment
-
-    /*if (course.getStudents().size() + students.size() >= 30
-        && course.getCourseStatus() == CourseStatus.CLOSED) {
-      CourseUpdateDto courseUpdateDto = new CourseUpdateDto();
-      courseUpdateDto.addUpdate(CourseField.COURSE_STATUS, CourseStatus.OPENED.name());
-      courseDao.update(courseId, courseUpdateDto.getUpdates());
-    }*/
-
     return new CourseStudentUpdateDto(courseId, studentIds);
   }
 
   @Override
   public CourseStudentUpdateDto removeStudents(long courseId, List<Long> studentIds) {
 
-    if (studentIds.isEmpty()) throw new EnrollmentException(ErrorCode.DELETION_FROM_COURSE_FAILED);
+    if (studentIds == null || studentIds.isEmpty()) {
+      throw new EnrollmentException(
+          ErrorCode.DELETION_FROM_COURSE_FAILED, "List of the student's ids is empty");
+    }
+
+    if (studentIds.stream().anyMatch(id -> id == null || id <= 0)) {
+      throw new EnrollmentException(
+          ErrorCode.DELETION_FROM_COURSE_FAILED, "List contains invalid student ids");
+    }
+
+    Set<Long> uniqueIds = new HashSet<>(studentIds);
+    if (uniqueIds.size() != studentIds.size()) {
+      throw new EnrollmentException(
+          ErrorCode.DELETION_FROM_COURSE_FAILED, "List contains duplicate student ids");
+    }
 
     Course course =
         courseDao
             .find(courseId)
-            .orElseThrow(() -> new EnrollmentException(ErrorCode.DELETION_FROM_COURSE_FAILED));
+            .orElseThrow(
+                () ->
+                    new EnrollmentException(
+                        ErrorCode.DELETION_FROM_COURSE_FAILED,
+                        String.format("Course with id = %d not found", courseId)));
     List<Student> students =
         studentIds.stream()
             .map(
@@ -194,7 +234,10 @@ public class CourseServiceImpl implements CourseService {
                     studentDao
                         .find(id)
                         .orElseThrow(
-                            () -> new EnrollmentException(ErrorCode.DELETION_FROM_COURSE_FAILED)))
+                            () ->
+                                new EnrollmentException(
+                                    ErrorCode.DELETION_FROM_COURSE_FAILED,
+                                    String.format("Student with id = %d not found", id))))
             .toList();
 
     students.stream()
@@ -202,7 +245,11 @@ public class CourseServiceImpl implements CourseService {
         .findFirst()
         .ifPresent(
             student -> {
-              throw new EnrollmentException(ErrorCode.DELETION_FROM_COURSE_FAILED);
+              throw new EnrollmentException(
+                  ErrorCode.DELETION_FROM_COURSE_FAILED,
+                  String.format(
+                      "Student with id = %d isn't enrolled on the course with id = %d",
+                      student.getId(), courseId));
             });
 
     courseDao.batchRemoveStudents(courseId, studentIds);
@@ -211,20 +258,6 @@ public class CourseServiceImpl implements CourseService {
         Collections.singletonMap(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
     courseDao.update(courseId, updates);
 
-    // TODO change logic about open closed
-    // check courseStatus after deleting
-    if (course.getStudents().size() - students.size() < 30
-        && course.getCourseStatus() == CourseStatus.OPENED) {
-      CourseUpdateDto courseUpdateDto = new CourseUpdateDto();
-      courseUpdateDto.addUpdate(CourseField.COURSE_STATUS, CourseStatus.CLOSED.name());
-      courseDao.update(courseId, courseUpdateDto.getUpdates());
-    }
-
     return new CourseStudentUpdateDto(courseId, studentIds);
-  }
-
-  private boolean canEnrollMoreStudents(long courseId, long numberToEnroll) {
-    long numberOfEnrolled = find(courseId).getStudents().size();
-    return numberOfEnrolled + numberToEnroll <= 150;
   }
 }

@@ -19,10 +19,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 @Service
-@Validated
 public class StudentServiceImpl implements StudentService {
 
   private final StudentDao studentDao;
