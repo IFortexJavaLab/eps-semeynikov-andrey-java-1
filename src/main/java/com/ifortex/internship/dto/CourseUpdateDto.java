@@ -12,7 +12,7 @@ import java.util.Map;
 public class CourseUpdateDto {
   private Map<CourseField, Object> updates = new HashMap<>();
 
-    public void addUpdate(CourseField courseField, Object value) {
+  public void addUpdate(CourseField courseField, Object value) {
     if (value != null) {
       updates.put(courseField, value);
     }
