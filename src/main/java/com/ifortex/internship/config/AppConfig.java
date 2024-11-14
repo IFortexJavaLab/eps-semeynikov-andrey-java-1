@@ -1,12 +1,16 @@
 package com.ifortex.internship.config;
 
 import java.util.Objects;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -14,6 +18,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = "com.ifortex.internship")
+@EnableTransactionManagement
+@EnableScheduling
 public class AppConfig implements WebMvcConfigurer {
 
   @Bean
@@ -30,5 +36,10 @@ public class AppConfig implements WebMvcConfigurer {
   @Bean
   public LocalValidatorFactoryBean validator() {
     return new LocalValidatorFactoryBean();
+  }
+
+  @Bean
+  public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+    return new DataSourceTransactionManager(dataSource);
   }
 }
