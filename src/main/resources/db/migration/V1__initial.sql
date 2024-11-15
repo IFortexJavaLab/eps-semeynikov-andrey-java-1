@@ -97,7 +97,7 @@ BEGIN
            WHERE cs.course_id = c.id) < 30;
 
     UPDATE course c
-    SET course_status = 'GOING'
+    SET course_status = 'STARTED'
     WHERE c.start_date::DATE = current_date
       AND (SELECT count(*)
            FROM course_student cs
