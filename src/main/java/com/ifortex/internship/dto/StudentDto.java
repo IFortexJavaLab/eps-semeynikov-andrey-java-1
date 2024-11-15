@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,4 +29,20 @@ public class StudentDto {
       groups = {Update.class, Create.class})
   @JsonProperty("name")
   private String name;
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) return true;
+    if (object == null || getClass() != object.getClass()) return false;
+
+    StudentDto that = (StudentDto) object;
+    return id == that.id && Objects.equals(name, that.name);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = Long.hashCode(id);
+    result = 31 * result + Objects.hashCode(name);
+    return result;
+  }
 }

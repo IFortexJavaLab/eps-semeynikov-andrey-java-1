@@ -1,10 +1,10 @@
 package com.ifortex.internship.service.impl;
 
 import com.ifortex.internship.dao.CourseDao;
-import com.ifortex.internship.dao.StudentDao;
 import com.ifortex.internship.dto.CourseDto;
 import com.ifortex.internship.dto.CourseStudentUpdateDto;
 import com.ifortex.internship.dto.CourseUpdateDto;
+import com.ifortex.internship.dto.StudentDto;
 import com.ifortex.internship.dto.mapper.CourseDtoToCourseMapper;
 import com.ifortex.internship.dto.mapper.CourseToCourseDtoMapper;
 import com.ifortex.internship.dto.markers.Create;
@@ -15,10 +15,10 @@ import com.ifortex.internship.exception.custom.EnrollmentException;
 import com.ifortex.internship.exception.custom.EnrollmentLimitExceededException;
 import com.ifortex.internship.exception.custom.ResourceNotFoundException;
 import com.ifortex.internship.model.Course;
-import com.ifortex.internship.model.Student;
 import com.ifortex.internship.model.enumeration.CourseField;
 import com.ifortex.internship.model.enumeration.CourseStatus;
 import com.ifortex.internship.service.CourseService;
+import com.ifortex.internship.service.StudentService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import java.time.LocalDateTime;
@@ -34,13 +34,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @Service
 public class CourseServiceImpl implements CourseService {
+  private final StudentService studentService;
   private final CourseDao courseDao;
-  private final StudentDao studentDao;
   private final Validator validator;
 
-  public CourseServiceImpl(CourseDao courseDao, StudentDao studentDao, Validator validator) {
+  public CourseServiceImpl(
+      StudentService studentService, CourseDao courseDao, Validator validator) {
+    this.studentService = studentService;
     this.courseDao = courseDao;
-    this.studentDao = studentDao;
     this.validator = validator;
   }
 
@@ -150,30 +151,12 @@ public class CourseServiceImpl implements CourseService {
           ErrorCode.ENROLLMENT_FAILED, "List contains duplicate student ids");
     }
 
-    Course course =
-        courseDao
-            .find(courseId)
-            .orElseThrow(
-                () ->
-                    new EnrollmentException(
-                        ErrorCode.ENROLLMENT_FAILED,
-                        String.format("Course with id = %d is not found", courseId)));
+    CourseDto course = find(courseId);
 
     if (course.getCourseStatus() != CourseStatus.OPENED)
       throw new EnrollmentException(ErrorCode.ENROLLMENT_FAILED, "Course is not opened");
 
-    List<Student> students =
-        studentIds.stream()
-            .map(
-                id ->
-                    studentDao
-                        .find(id)
-                        .orElseThrow(
-                            () ->
-                                new EnrollmentException(
-                                    ErrorCode.ENROLLMENT_FAILED,
-                                    String.format("Student with id = %d is not found", id))))
-            .toList();
+    List<StudentDto> students = studentIds.stream().map(studentService::find).toList();
 
     students.stream()
         .filter(course.getStudents()::contains)
@@ -219,26 +202,8 @@ public class CourseServiceImpl implements CourseService {
           ErrorCode.DELETION_FROM_COURSE_FAILED, "List contains duplicate student ids");
     }
 
-    Course course =
-        courseDao
-            .find(courseId)
-            .orElseThrow(
-                () ->
-                    new EnrollmentException(
-                        ErrorCode.DELETION_FROM_COURSE_FAILED,
-                        String.format("Course with id = %d not found", courseId)));
-    List<Student> students =
-        studentIds.stream()
-            .map(
-                id ->
-                    studentDao
-                        .find(id)
-                        .orElseThrow(
-                            () ->
-                                new EnrollmentException(
-                                    ErrorCode.DELETION_FROM_COURSE_FAILED,
-                                    String.format("Student with id = %d not found", id))))
-            .toList();
+    CourseDto course = find(courseId);
+    List<StudentDto> students = studentIds.stream().map(studentService::find).toList();
 
     students.stream()
         .filter(student -> !course.getStudents().contains(student))
