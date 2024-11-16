@@ -2,11 +2,10 @@ package com.ifortex.internship.service.impl;
 
 import com.ifortex.internship.dao.CourseDao;
 import com.ifortex.internship.dto.CourseDto;
-import com.ifortex.internship.dto.CourseStudentUpdateDto;
-import com.ifortex.internship.dto.CourseUpdateDto;
 import com.ifortex.internship.dto.StudentDto;
 import com.ifortex.internship.dto.mapper.CourseDtoToCourseMapper;
 import com.ifortex.internship.dto.mapper.CourseToCourseDtoMapper;
+import com.ifortex.internship.dto.mapper.StudentToStudentDtoMapper;
 import com.ifortex.internship.dto.markers.Create;
 import com.ifortex.internship.dto.markers.Update;
 import com.ifortex.internship.exception.codes.ErrorCode;
@@ -23,7 +22,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,40 +87,17 @@ public class CourseServiceImpl implements CourseService {
             .find(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COURSE_NOT_FOUND, id));
 
-    CourseUpdateDto courseUpdateDto = new CourseUpdateDto();
+    Map<CourseField, Object> updates = getFieldsForUpdate(courseDto);
 
-    if (courseDto.getName() != null) {
-      courseUpdateDto.addUpdate(CourseField.NAME, courseDto.getName());
-      course.setName(courseDto.getName());
-    }
-    if (courseDto.getDescription() != null) {
-      courseUpdateDto.addUpdate(CourseField.DESCRIPTION, courseDto.getDescription());
-      course.setDescription(courseDto.getDescription());
-    }
-    if (courseDto.getPrice() != null) {
-      courseUpdateDto.addUpdate(CourseField.PRICE, courseDto.getPrice());
-      course.setPrice(courseDto.getPrice());
-    }
-    if (courseDto.getDuration() != null) {
-      courseUpdateDto.addUpdate(CourseField.DURATION, courseDto.getDuration());
-      course.setDuration(courseDto.getDuration());
-    }
-    if (courseDto.getStartDate() != null) {
-      courseUpdateDto.addUpdate(CourseField.START_DATE, courseDto.getStartDate());
-      course.setStartDate(courseDto.getStartDate());
-    }
-    if (courseDto.getCourseStatus() != null) {
-      courseUpdateDto.addUpdate(CourseField.COURSE_STATUS, courseDto.getCourseStatus().name());
-      course.setCourseStatus(courseDto.getCourseStatus());
-    }
-
-    if (!courseUpdateDto.getUpdates().isEmpty()) {
-      courseUpdateDto.addUpdate(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
+    if (!updates.isEmpty()) {
+      updates.put(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
       course.setLastUpdateDate(LocalDateTime.now());
 
-      courseDao.update(id, courseUpdateDto.getUpdates());
+      courseDao.update(id, updates);
     }
-    return CourseToCourseDtoMapper.convert(course);
+    mapNewDtoFields(course, courseDto);
+
+    return courseDto;
   }
 
   @Override
@@ -133,44 +109,26 @@ public class CourseServiceImpl implements CourseService {
   }
 
   @Override
-  public CourseStudentUpdateDto enrollStudents(long courseId, List<Long> studentIds) {
+  public Set<StudentDto> enrollStudents(long courseId, List<Long> studentIds) {
 
     CourseDto course = find(courseId);
-
-    if (course.getCourseStatus() != CourseStatus.OPENED)
+    if (course.getCourseStatus() != CourseStatus.OPENED) {
       throw new EnrollmentException(ErrorCode.ENROLLMENT_FAILED, "Course is not opened");
-
-    if (studentIds == null || studentIds.isEmpty()) {
-      throw new EnrollmentException(
-          ErrorCode.ENROLLMENT_FAILED, "List of the student's ids is empty");
     }
 
-    if (studentIds.stream().anyMatch(id -> id == null || id <= 0)) {
+    studentIds = validateStudentIds(studentIds);
+    List<Long> enrolledStudentIds =
+        course.getStudents().stream().map(StudentDto::getId).filter(studentIds::contains).toList();
+
+    if (!enrolledStudentIds.isEmpty()) {
       throw new EnrollmentException(
-          ErrorCode.ENROLLMENT_FAILED, "List contains invalid student ids");
+          ErrorCode.ENROLLMENT_FAILED,
+          String.format(
+              "Students with these ids = %s already enrolled in the course", enrolledStudentIds));
     }
 
-    Set<Long> uniqueIds = new HashSet<>(studentIds);
-    if (uniqueIds.size() != studentIds.size()) {
-      throw new EnrollmentException(
-          ErrorCode.ENROLLMENT_FAILED, "List contains duplicate student ids");
-    }
-
-    List<StudentDto> students = studentIds.stream().map(studentService::find).toList();
-
-    students.stream()
-        .filter(course.getStudents()::contains)
-        .findFirst()
-        .ifPresent(
-            student -> {
-              throw new EnrollmentException(
-                  ErrorCode.ENROLLMENT_FAILED,
-                  String.format(
-                      "Student with id = %d is enrolled on the course with id = %d",
-                      student.getId(), courseId));
-            });
-
-    if (course.getStudents().size() + students.size() <= 150) {
+    boolean canEnrollMoreStudents = course.getStudents().size() + studentIds.size() <= 150;
+    if (canEnrollMoreStudents) {
       courseDao.batchEnrollStudents(courseId, studentIds);
 
       Map<CourseField, Object> updates =
@@ -180,42 +138,26 @@ public class CourseServiceImpl implements CourseService {
       throw new EnrollmentLimitExceededException(ErrorCode.ENROLLMENT_LIMIT_EXCEEDED, courseId);
     }
 
-    return new CourseStudentUpdateDto(courseId, studentIds);
+    course = find(courseId);
+    return course.getStudents();
   }
 
   @Override
-  public CourseStudentUpdateDto removeStudents(long courseId, List<Long> studentIds) {
+  public Set<StudentDto> removeStudents(long courseId, List<Long> studentIds) {
 
-    if (studentIds == null || studentIds.isEmpty()) {
-      throw new EnrollmentException(
-          ErrorCode.DELETION_FROM_COURSE_FAILED, "List of the student's ids is empty");
-    }
-
-    if (studentIds.stream().anyMatch(id -> id == null || id <= 0)) {
-      throw new EnrollmentException(
-          ErrorCode.DELETION_FROM_COURSE_FAILED, "List contains invalid student ids");
-    }
-
-    Set<Long> uniqueIds = new HashSet<>(studentIds);
-    if (uniqueIds.size() != studentIds.size()) {
-      throw new EnrollmentException(
-          ErrorCode.DELETION_FROM_COURSE_FAILED, "List contains duplicate student ids");
-    }
-
+    studentIds = validateStudentIds(studentIds);
     CourseDto course = find(courseId);
-    List<StudentDto> students = studentIds.stream().map(studentService::find).toList();
+    List<Long> enrolledStudentIds = course.getStudents().stream().map(StudentDto::getId).toList();
 
-    students.stream()
-        .filter(student -> !course.getStudents().contains(student))
-        .findFirst()
-        .ifPresent(
-            student -> {
-              throw new EnrollmentException(
-                  ErrorCode.DELETION_FROM_COURSE_FAILED,
-                  String.format(
-                      "Student with id = %d isn't enrolled on the course with id = %d",
-                      student.getId(), courseId));
-            });
+    List<Long> notEnrolledStudentIds =
+        studentIds.stream().filter(id -> !enrolledStudentIds.contains(id)).toList();
+
+    if (!notEnrolledStudentIds.isEmpty()) {
+      throw new EnrollmentException(
+          ErrorCode.ENROLLMENT_FAILED,
+          String.format(
+              "Students with these ids = %s aren't enrolled in the course", notEnrolledStudentIds));
+    }
 
     courseDao.batchRemoveStudents(courseId, studentIds);
 
@@ -223,6 +165,80 @@ public class CourseServiceImpl implements CourseService {
         Collections.singletonMap(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
     courseDao.update(courseId, updates);
 
-    return new CourseStudentUpdateDto(courseId, studentIds);
+    course = find(courseId);
+    return course.getStudents();
+  }
+
+  private List<Long> validateStudentIds(List<Long> studentIds) {
+
+    if (studentIds == null || studentIds.isEmpty()) {
+      throw new EnrollmentException(
+          ErrorCode.ENROLLMENT_FAILED, "List of the student's ids is empty");
+    }
+
+    if (studentIds.stream().anyMatch(id -> id <= 0)) {
+      throw new EnrollmentException(
+          ErrorCode.ENROLLMENT_FAILED, "List contains invalid student ids");
+    }
+
+    studentIds = studentIds.stream().distinct().toList();
+
+    List<Long> missingStudentIds = studentService.findNonexistentStudentIds(studentIds);
+    if (!missingStudentIds.isEmpty()) {
+      throw new EnrollmentException(
+          ErrorCode.ENROLLMENT_FAILED,
+          String.format("Students with these ids = %s do not exist", missingStudentIds));
+    }
+    return studentIds;
+  }
+
+  private void mapNewDtoFields(Course oldCourseEntity, CourseDto courseDto) {
+    if (courseDto.getName() == null) {
+      courseDto.setName(oldCourseEntity.getName());
+    }
+    if (courseDto.getDescription() == null) {
+      courseDto.setDescription(oldCourseEntity.getDescription());
+    }
+    if (courseDto.getPrice() == null) {
+      courseDto.setPrice(oldCourseEntity.getPrice());
+    }
+    if (courseDto.getStartDate() == null) {
+      courseDto.setStartDate(oldCourseEntity.getStartDate());
+    }
+    if (courseDto.getDuration() == null) {
+      courseDto.setDuration(oldCourseEntity.getDuration());
+    }
+    if (courseDto.getCourseStatus() == null) {
+      courseDto.setCourseStatus(oldCourseEntity.getCourseStatus());
+    }
+    if (courseDto.getStudents() == null) {
+      courseDto.setStudents(StudentToStudentDtoMapper.convert(oldCourseEntity.getStudents()));
+    }
+    courseDto.setId(oldCourseEntity.getId());
+    courseDto.setLastUpdateDate(oldCourseEntity.getLastUpdateDate());
+  }
+
+  private Map<CourseField, Object> getFieldsForUpdate(CourseDto courseDto) {
+    Map<CourseField, Object> fields = new HashMap<>();
+    if (courseDto.getName() != null) {
+      fields.put(CourseField.NAME, courseDto.getName());
+    }
+    if (courseDto.getDescription() != null) {
+      fields.put(CourseField.DESCRIPTION, courseDto.getDescription());
+    }
+    if (courseDto.getPrice() != null) {
+      fields.put(CourseField.PRICE, courseDto.getPrice());
+    }
+    if (courseDto.getDuration() != null) {
+      fields.put(CourseField.DURATION, courseDto.getDuration());
+    }
+    if (courseDto.getStartDate() != null) {
+      fields.put(CourseField.START_DATE, courseDto.getStartDate());
+    }
+    if (courseDto.getCourseStatus() != null) {
+      fields.put(CourseField.COURSE_STATUS, courseDto.getCourseStatus().name());
+    }
+
+    return fields;
   }
 }

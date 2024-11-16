@@ -2,7 +2,6 @@ package com.ifortex.internship.service.impl;
 
 import com.ifortex.internship.dao.StudentDao;
 import com.ifortex.internship.dto.StudentDto;
-import com.ifortex.internship.dto.StudentUpdateDto;
 import com.ifortex.internship.dto.mapper.StudentDtoToStudentMapper;
 import com.ifortex.internship.dto.mapper.StudentToStudentDtoMapper;
 import com.ifortex.internship.dto.markers.Create;
@@ -15,7 +14,9 @@ import com.ifortex.internship.model.enumeration.StudentField;
 import com.ifortex.internship.service.StudentService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -73,15 +74,16 @@ public class StudentServiceImpl implements StudentService {
             .find(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.STUDENT_NOT_FOUND, id));
 
-    StudentUpdateDto studentUpdateDto = new StudentUpdateDto();
+    Map<StudentField, Object> updates = new HashMap<>();
 
     if (studentDto.getName() != null) {
-      studentUpdateDto.addUpdate(StudentField.NAME, studentDto.getName());
+      updates.put(StudentField.NAME, studentDto.getName());
       student.setName(studentDto.getName());
     }
 
-    if (!studentUpdateDto.getUpdates().isEmpty())
-      studentDao.update(id, studentUpdateDto.getUpdates());
+    if (!updates.isEmpty()) {
+      studentDao.update(id, updates);
+    }
     return StudentToStudentDtoMapper.convert(student);
   }
 
@@ -91,5 +93,10 @@ public class StudentServiceImpl implements StudentService {
         .find(id)
         .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.STUDENT_NOT_FOUND, id));
     studentDao.delete(id);
+  }
+
+  @Override
+  public List<Long> findNonexistentStudentIds(List<Long> studentIds) {
+    return studentDao.findNonexistentStudentIds(studentIds);
   }
 }

@@ -6,9 +6,7 @@ import com.ifortex.internship.exception.custom.StudentDtoValidationException;
 
 import java.util.List;
 
-/**
- * Service interface for managing student operations.
- */
+/** Service interface for managing student operations. */
 public interface StudentService {
 
   /**
@@ -53,4 +51,12 @@ public interface StudentService {
    * @throws ResourceNotFoundException if no student is found with the provided ID
    */
   void delete(long id);
+
+  /**
+   * Finds student IDs from the provided list that do not exist.
+   *
+   * @param studentIds the list of student IDs to check
+   * @return a list of IDs that are not present.
+   */
+  List<Long> findNonexistentStudentIds(List<Long> studentIds);
 }

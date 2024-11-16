@@ -53,4 +53,12 @@ public interface StudentDao {
    * @param id the id of the student to delete.
    */
   void delete(long id);
+
+  /**
+   * Finds student IDs from the provided list that do not exist in the database.
+   *
+   * @param studentIds the list of student IDs to check
+   * @return a list of IDs that are not present in the table
+   */
+  List<Long> findNonexistentStudentIds(List<Long> studentIds);
 }

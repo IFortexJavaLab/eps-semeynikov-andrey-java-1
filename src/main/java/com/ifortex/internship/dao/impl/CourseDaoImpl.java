@@ -6,7 +6,7 @@ import com.ifortex.internship.model.Course;
 import com.ifortex.internship.model.enumeration.CourseField;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,7 +46,7 @@ public class CourseDaoImpl implements CourseDao {
         },
         keyHolder);
     course.setId(keyHolder.getKey().longValue());
-    course.setStudents(new HashSet<>());
+    course.setStudents(Collections.emptySet());
     return course;
   }
 

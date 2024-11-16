@@ -32,9 +32,6 @@ public enum ErrorCode {
   /** Error code indicating a failure during the enrollment process. */
   ENROLLMENT_FAILED(40902, "Error during an enrollment"),
 
-  /** Error code indicating a failure when attempting to delete a student from a course. */
-  DELETION_FROM_COURSE_FAILED(40902, "Error during deletion students from the course"),
-
   /** Error code indicating a validation failure for the {@link StudentDto}. */
   STUDENT_DTO_VALIDATION_FAILED(40601, "Validation failed for the provided data"),
 
