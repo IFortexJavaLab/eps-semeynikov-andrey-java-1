@@ -1,35 +1,24 @@
 package com.ifortex.internship.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ifortex.internship.model.enumeration.CourseStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
+@Accessors(chain = true)
 public class Course {
-  private long id;
+
+  @EqualsAndHashCode.Exclude private Long id;
   private String name;
   private String description;
   private BigDecimal price;
   private int duration;
-
-  @JsonProperty("startDate")
-  @JsonFormat(shape = JsonFormat.Shape.STRING)
   private LocalDateTime startDate;
-
-  @JsonProperty("lastUpdateDate")
-  @JsonFormat(shape = JsonFormat.Shape.STRING)
   private LocalDateTime lastUpdateDate;
-
   private CourseStatus courseStatus;
   private Set<Student> students;
 }

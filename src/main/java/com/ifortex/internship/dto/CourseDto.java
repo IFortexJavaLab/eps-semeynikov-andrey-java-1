@@ -1,7 +1,6 @@
 package com.ifortex.internship.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.ifortex.internship.dto.markers.Create;
 import com.ifortex.internship.dto.markers.Update;
 import com.ifortex.internship.model.enumeration.CourseStatus;
@@ -19,14 +18,15 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Accessors(chain = true)
 public class CourseDto {
 
-  @JsonProperty("id")
   private long id;
 
   @NotNull(message = "Name can't be null", groups = Create.class)
@@ -35,7 +35,6 @@ public class CourseDto {
       max = 50,
       message = "Name must be between 2 and 50 characters long",
       groups = {Update.class, Create.class})
-  @JsonProperty("name")
   private String name;
 
   @NotNull(message = "Description can't be null", groups = Create.class)
@@ -43,7 +42,6 @@ public class CourseDto {
       max = 300,
       message = "Description must be at most 300 characters",
       groups = {Create.class, Update.class})
-  @JsonProperty("description")
   private String description;
 
   @NotNull(message = "Price can't be null", groups = Create.class)
@@ -57,7 +55,6 @@ public class CourseDto {
       fraction = 2,
       message = "Price must be a valid amount with up to 2 decimal places",
       groups = {Create.class, Update.class})
-  @JsonProperty("price")
   private BigDecimal price;
 
   @NotNull(message = "Duration can't be null", groups = Create.class)
@@ -69,7 +66,6 @@ public class CourseDto {
       value = 365,
       message = "Duration must be less than 365 days",
       groups = {Create.class, Update.class})
-  @JsonProperty("duration")
   private Integer duration;
 
   @NotNull(message = "Start date is required", groups = Create.class)
@@ -77,17 +73,13 @@ public class CourseDto {
       message = "Start date must be in the future or present",
       groups = {Create.class, Update.class})
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-  @JsonProperty("startDate")
   private LocalDateTime startDate;
 
-  @JsonProperty("lastUpdateDate")
   @JsonFormat(shape = JsonFormat.Shape.STRING)
   private LocalDateTime lastUpdateDate;
 
   @NotNull(message = "Course status is required", groups = Create.class)
-  @JsonProperty("courseStatus")
   private CourseStatus courseStatus;
 
-  @JsonProperty("students")
   private Set<StudentDto> students;
 }

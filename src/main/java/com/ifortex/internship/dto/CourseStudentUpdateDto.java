@@ -1,6 +1,5 @@
 package com.ifortex.internship.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,8 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class CourseStudentUpdateDto {
 
-  @JsonProperty("courseId")
-  long courseId;
+  private long courseId;
 
-  List<Long> updatedStudents;
+  private List<Long> updatedStudents;
 }

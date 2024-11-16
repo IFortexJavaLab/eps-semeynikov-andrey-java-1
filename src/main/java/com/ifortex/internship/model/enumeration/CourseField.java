@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum CourseField {
+
   ID("id"),
   NAME("name"),
   DESCRIPTION("description"),
@@ -12,6 +13,7 @@ public enum CourseField {
   START_DATE("startDate"),
   LAST_UPDATE_DATE("lastUpdateDate"),
   COURSE_STATUS("courseStatus");
+
   private final String fieldName;
 
   CourseField(String fieldName) {

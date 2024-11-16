@@ -6,6 +6,7 @@ import lombok.Getter;
 public enum StudentField {
   ID("id"),
   NAME("name");
+
   private final String fieldName;
 
   StudentField(String fieldName) {

@@ -135,6 +135,11 @@ public class CourseServiceImpl implements CourseService {
   @Override
   public CourseStudentUpdateDto enrollStudents(long courseId, List<Long> studentIds) {
 
+    CourseDto course = find(courseId);
+
+    if (course.getCourseStatus() != CourseStatus.OPENED)
+      throw new EnrollmentException(ErrorCode.ENROLLMENT_FAILED, "Course is not opened");
+
     if (studentIds == null || studentIds.isEmpty()) {
       throw new EnrollmentException(
           ErrorCode.ENROLLMENT_FAILED, "List of the student's ids is empty");
@@ -150,11 +155,6 @@ public class CourseServiceImpl implements CourseService {
       throw new EnrollmentException(
           ErrorCode.ENROLLMENT_FAILED, "List contains duplicate student ids");
     }
-
-    CourseDto course = find(courseId);
-
-    if (course.getCourseStatus() != CourseStatus.OPENED)
-      throw new EnrollmentException(ErrorCode.ENROLLMENT_FAILED, "Course is not opened");
 
     List<StudentDto> students = studentIds.stream().map(studentService::find).toList();
 
