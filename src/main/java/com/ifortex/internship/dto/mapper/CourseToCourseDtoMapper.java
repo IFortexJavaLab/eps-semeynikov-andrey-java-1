@@ -22,4 +22,30 @@ public class CourseToCourseDtoMapper {
             Optional.ofNullable(course.getStudents()).orElse(Collections.emptySet())));
     return courseDto;
   }
+
+  public static void mapNewDtoFields(Course oldCourseEntity, CourseDto courseDto) {
+    if (courseDto.getName() == null) {
+      courseDto.setName(oldCourseEntity.getName());
+    }
+    if (courseDto.getDescription() == null) {
+      courseDto.setDescription(oldCourseEntity.getDescription());
+    }
+    if (courseDto.getPrice() == null) {
+      courseDto.setPrice(oldCourseEntity.getPrice());
+    }
+    if (courseDto.getStartDate() == null) {
+      courseDto.setStartDate(oldCourseEntity.getStartDate());
+    }
+    if (courseDto.getDuration() == null) {
+      courseDto.setDuration(oldCourseEntity.getDuration());
+    }
+    if (courseDto.getCourseStatus() == null) {
+      courseDto.setCourseStatus(oldCourseEntity.getCourseStatus());
+    }
+    if (courseDto.getStudents() == null) {
+      courseDto.setStudents(StudentToStudentDtoMapper.convert(oldCourseEntity.getStudents()));
+    }
+    courseDto.setId(oldCourseEntity.getId());
+    courseDto.setLastUpdateDate(oldCourseEntity.getLastUpdateDate());
+  }
 }

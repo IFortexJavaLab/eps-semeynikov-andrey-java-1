@@ -5,7 +5,6 @@ import com.ifortex.internship.dto.CourseDto;
 import com.ifortex.internship.dto.StudentDto;
 import com.ifortex.internship.dto.mapper.CourseDtoToCourseMapper;
 import com.ifortex.internship.dto.mapper.CourseToCourseDtoMapper;
-import com.ifortex.internship.dto.mapper.StudentToStudentDtoMapper;
 import com.ifortex.internship.dto.markers.Create;
 import com.ifortex.internship.dto.markers.Update;
 import com.ifortex.internship.exception.codes.ErrorCode;
@@ -30,7 +29,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 @Service
 public class CourseServiceImpl implements CourseService {
   private final StudentService studentService;
@@ -44,6 +42,7 @@ public class CourseServiceImpl implements CourseService {
     this.validator = validator;
   }
 
+  @Transactional
   @Override
   public CourseDto create(CourseDto courseDto) {
 
@@ -74,6 +73,7 @@ public class CourseServiceImpl implements CourseService {
         .collect(Collectors.toList());
   }
 
+  @Transactional
   @Override
   public CourseDto update(long id, CourseDto courseDto) {
 
@@ -95,11 +95,13 @@ public class CourseServiceImpl implements CourseService {
 
       courseDao.update(id, updates);
     }
-    mapNewDtoFields(course, courseDto);
+
+    CourseToCourseDtoMapper.mapNewDtoFields(course, courseDto);
 
     return courseDto;
   }
 
+  @Transactional
   @Override
   public void delete(long id) {
     courseDao
@@ -108,6 +110,7 @@ public class CourseServiceImpl implements CourseService {
     courseDao.delete(id);
   }
 
+  @Transactional
   @Override
   public Set<StudentDto> enrollStudents(long courseId, List<Long> studentIds) {
 
@@ -127,21 +130,22 @@ public class CourseServiceImpl implements CourseService {
               "Students with these ids = %s already enrolled in the course", enrolledStudentIds));
     }
 
-    boolean canEnrollMoreStudents = course.getStudents().size() + studentIds.size() <= 150;
-    if (canEnrollMoreStudents) {
-      courseDao.batchEnrollStudents(courseId, studentIds);
-
-      Map<CourseField, Object> updates =
-          Collections.singletonMap(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
-      courseDao.update(courseId, updates);
-    } else {
+    boolean courseIsFull = course.getStudents().size() + studentIds.size() > 150;
+    if (courseIsFull) {
       throw new EnrollmentLimitExceededException(ErrorCode.ENROLLMENT_LIMIT_EXCEEDED, courseId);
     }
+
+    courseDao.batchEnrollStudents(courseId, studentIds);
+
+    Map<CourseField, Object> updates =
+        Collections.singletonMap(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
+    courseDao.update(courseId, updates);
 
     course = find(courseId);
     return course.getStudents();
   }
 
+  @Transactional
   @Override
   public Set<StudentDto> removeStudents(long courseId, List<Long> studentIds) {
 
@@ -176,7 +180,8 @@ public class CourseServiceImpl implements CourseService {
           ErrorCode.ENROLLMENT_FAILED, "List of the student's ids is empty");
     }
 
-    if (studentIds.stream().anyMatch(id -> id <= 0)) {
+    boolean hasNegativeId = studentIds.stream().anyMatch(id -> id <= 0);
+    if (hasNegativeId) {
       throw new EnrollmentException(
           ErrorCode.ENROLLMENT_FAILED, "List contains invalid student ids");
     }
@@ -190,32 +195,6 @@ public class CourseServiceImpl implements CourseService {
           String.format("Students with these ids = %s do not exist", missingStudentIds));
     }
     return studentIds;
-  }
-
-  private void mapNewDtoFields(Course oldCourseEntity, CourseDto courseDto) {
-    if (courseDto.getName() == null) {
-      courseDto.setName(oldCourseEntity.getName());
-    }
-    if (courseDto.getDescription() == null) {
-      courseDto.setDescription(oldCourseEntity.getDescription());
-    }
-    if (courseDto.getPrice() == null) {
-      courseDto.setPrice(oldCourseEntity.getPrice());
-    }
-    if (courseDto.getStartDate() == null) {
-      courseDto.setStartDate(oldCourseEntity.getStartDate());
-    }
-    if (courseDto.getDuration() == null) {
-      courseDto.setDuration(oldCourseEntity.getDuration());
-    }
-    if (courseDto.getCourseStatus() == null) {
-      courseDto.setCourseStatus(oldCourseEntity.getCourseStatus());
-    }
-    if (courseDto.getStudents() == null) {
-      courseDto.setStudents(StudentToStudentDtoMapper.convert(oldCourseEntity.getStudents()));
-    }
-    courseDto.setId(oldCourseEntity.getId());
-    courseDto.setLastUpdateDate(oldCourseEntity.getLastUpdateDate());
   }
 
   private Map<CourseField, Object> getFieldsForUpdate(CourseDto courseDto) {

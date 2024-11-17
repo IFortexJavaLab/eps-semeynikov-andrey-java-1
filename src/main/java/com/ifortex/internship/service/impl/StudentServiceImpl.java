@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class StudentServiceImpl implements StudentService {
@@ -32,6 +33,7 @@ public class StudentServiceImpl implements StudentService {
     this.validator = validator;
   }
 
+  @Transactional
   @Override
   public StudentDto create(StudentDto studentDto) {
 
@@ -61,6 +63,7 @@ public class StudentServiceImpl implements StudentService {
         .collect(Collectors.toList());
   }
 
+  @Transactional
   @Override
   public StudentDto update(long id, StudentDto studentDto) {
 
@@ -87,6 +90,7 @@ public class StudentServiceImpl implements StudentService {
     return StudentToStudentDtoMapper.convert(student);
   }
 
+  @Transactional
   @Override
   public void delete(long id) {
     studentDao
