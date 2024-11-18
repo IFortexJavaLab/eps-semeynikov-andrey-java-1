@@ -1,5 +1,6 @@
 package com.ifortex.internship.dao;
 
+import com.ifortex.internship.dto.CourseFilterSortDto;
 import com.ifortex.internship.model.enumeration.CourseField;
 import com.ifortex.internship.model.Course;
 import java.util.List;
@@ -88,4 +89,13 @@ public interface CourseDao {
    * @param studentIds a list of student id to remove from the course.
    */
   void batchRemoveStudents(long courseId, List<Long> studentIds);
+
+  /**
+   * Retrieves {@link Course}s based on applied filters and sorting criteria.
+   *
+   * @param courseFilterSortDto the filter and sort criteria encapsulated in a {@link
+   *     CourseFilterSortDto} object
+   * @return a list of courses matching the filters and sorted according to the provided criteria
+   */
+  List<Course> findWithParametersAndSort(CourseFilterSortDto courseFilterSortDto);
 }

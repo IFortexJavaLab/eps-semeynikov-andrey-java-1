@@ -2,6 +2,7 @@ package com.ifortex.internship.service.impl;
 
 import com.ifortex.internship.dao.CourseDao;
 import com.ifortex.internship.dto.CourseDto;
+import com.ifortex.internship.dto.CourseFilterSortDto;
 import com.ifortex.internship.dto.StudentDto;
 import com.ifortex.internship.dto.mapper.CourseDtoToCourseMapper;
 import com.ifortex.internship.dto.mapper.CourseToCourseDtoMapper;
@@ -195,6 +196,13 @@ public class CourseServiceImpl implements CourseService {
           String.format("Students with these ids = %s do not exist", missingStudentIds));
     }
     return studentIds;
+  }
+
+  @Override
+  public List<CourseDto> findWithParametersAndSort(CourseFilterSortDto courseFilterSortDto) {
+    return courseDao.findWithParametersAndSort(courseFilterSortDto).stream()
+        .map(CourseToCourseDtoMapper::convert)
+        .toList();
   }
 
   private Map<CourseField, Object> getFieldsForUpdate(CourseDto courseDto) {
