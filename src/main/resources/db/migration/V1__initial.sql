@@ -1,15 +1,13 @@
-CREATE TYPE course_status AS ENUM ('OPENED', 'CLOSED');
-
 CREATE TABLE IF NOT EXISTS course
 (
     id               SERIAL PRIMARY KEY,
-    name             VARCHAR(255)   NOT NULL,
+    name             VARCHAR(255)                  NOT NULL,
     description      TEXT,
-    price            DECIMAL(10, 2) NOT NULL,
-    duration         INTEGER        NOT NULL,
-    start_date       TIMESTAMP      NOT NULL,
-    last_update_date TIMESTAMP      NOT NULL,
-    course_status    course_status  NOT NULL
+    price            DECIMAL(10, 2)                NOT NULL,
+    duration         INTEGER                       NOT NULL,
+    start_date       TIMESTAMP                     NOT NULL,
+    last_update_date TIMESTAMP                     NOT NULL,
+    course_status    VARCHAR(255) DEFAULT 'OPENED' NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS student
@@ -34,7 +32,7 @@ WITH gen_courses AS (SELECT 'Course ' || gs::text                               
                             (30 + (gs % 5) * 15)                                         AS duration,
                             (CURRENT_DATE + interval '1 day' * (gs % 30))::timestamp     AS start_date,
                             (CURRENT_TIMESTAMP - interval '1 day' * (gs % 7))::timestamp AS last_update_date,
-                            'OPENED'::course_status                                      AS course_status
+                            'OPENED'                                                     AS course_status
                      FROM generate_series(1, 1000) AS gs)
 INSERT
 INTO course (name, description, price, duration, start_date, last_update_date, course_status)
@@ -84,4 +82,25 @@ $$
             END LOOP;
 
     END
+$$;
+
+CREATE OR REPLACE PROCEDURE update_today_courses_status()
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    UPDATE course c
+    SET course_status = 'CLOSED'
+    WHERE c.start_date::DATE = current_date
+      AND (SELECT count(*)
+           FROM course_student cs
+           WHERE cs.course_id = c.id) < 30;
+
+    UPDATE course c
+    SET course_status = 'STARTED'
+    WHERE c.start_date::DATE = current_date
+      AND (SELECT count(*)
+           FROM course_student cs
+           WHERE cs.course_id = c.id) >= 30;
+END;
 $$;

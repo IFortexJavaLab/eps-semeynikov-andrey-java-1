@@ -1,5 +1,6 @@
 package com.ifortex.internship.dao;
 
+import com.ifortex.internship.model.enumeration.CourseField;
 import com.ifortex.internship.model.Course;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public interface CourseDao {
    * @param id the id of the course to update.
    * @param updates a map of field names and their new values for the course update.
    */
-  void update(long id, Map<String, Object> updates);
+  void update(long id, Map<CourseField, Object> updates);
 
   /**
    * Deletes a course from the database by its id.

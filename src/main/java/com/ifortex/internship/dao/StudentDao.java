@@ -1,5 +1,6 @@
 package com.ifortex.internship.dao;
 
+import com.ifortex.internship.model.enumeration.StudentField;
 import com.ifortex.internship.model.Student;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,7 @@ public interface StudentDao {
    * @param id the id of the student to update.
    * @param valuesToUpdate a map of field names and their new values for the student update.
    */
-  void update(long id, Map<String, Object> valuesToUpdate);
+  void update(long id, Map<StudentField, Object> valuesToUpdate);
 
   /**
    * Deletes a student record by its id.
@@ -52,4 +53,12 @@ public interface StudentDao {
    * @param id the id of the student to delete.
    */
   void delete(long id);
+
+  /**
+   * Finds student IDs from the provided list that do not exist in the database.
+   *
+   * @param studentIds the list of student IDs to check
+   * @return a list of IDs that are not present in the table
+   */
+  List<Long> findNonexistentStudentIds(List<Long> studentIds);
 }

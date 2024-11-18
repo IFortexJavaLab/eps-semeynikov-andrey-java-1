@@ -2,11 +2,13 @@ package com.ifortex.internship.dao.impl;
 
 import com.ifortex.internship.dao.StudentDao;
 import com.ifortex.internship.model.Student;
+import com.ifortex.internship.model.enumeration.StudentField;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -51,7 +53,7 @@ public class StudentDaoImpl implements StudentDao {
   }
 
   @Override
-  public void update(long id, Map<String, Object> updates) {
+  public void update(long id, Map<StudentField, Object> updates) {
     List<String> setClauses = new ArrayList<>();
     List<Object> params = new ArrayList<>();
 
@@ -71,5 +73,23 @@ public class StudentDaoImpl implements StudentDao {
   public void delete(long id) {
     String sql = "DELETE FROM student WHERE id = ?";
     jdbcTemplate.update(sql, id);
+  }
+
+  @Override
+  public List<Long> findNonexistentStudentIds(List<Long> studentIds) {
+
+    String sql =
+        """
+                SELECT id
+                FROM (VALUES %s) AS provided_ids(id)
+                WHERE id NOT IN (SELECT id FROM student);
+                """;
+
+    String valuesClause =
+        studentIds.stream().map(id -> String.format("(%d)", id)).collect(Collectors.joining(", "));
+
+    String formattedSql = String.format(sql, valuesClause);
+
+    return jdbcTemplate.query(formattedSql, (rs, rowNum) -> rs.getLong("id"));
   }
 }

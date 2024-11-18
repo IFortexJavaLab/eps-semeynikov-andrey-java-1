@@ -3,9 +3,10 @@ package com.ifortex.internship.dao.impl;
 import com.ifortex.internship.dao.CourseDao;
 import com.ifortex.internship.dao.mapper.CourseWithStudentsExtractor;
 import com.ifortex.internship.model.Course;
+import com.ifortex.internship.model.enumeration.CourseField;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +31,7 @@ public class CourseDaoImpl implements CourseDao {
     KeyHolder keyHolder = new GeneratedKeyHolder();
     String sql =
         "INSERT INTO course (name, description, price, duration, start_date, last_update_date, course_status)"
-            + "VALUES (?, ?, ?, ?, ?, ?, ?::course_status)";
+            + "VALUES (?, ?, ?, ?, ?, ?, ?)";
     jdbcTemplate.update(
         connection -> {
           PreparedStatement ps = connection.prepareStatement(sql, new String[] {"id"});
@@ -45,7 +46,7 @@ public class CourseDaoImpl implements CourseDao {
         },
         keyHolder);
     course.setId(keyHolder.getKey().longValue());
-    course.setStudents(new HashSet<>());
+    course.setStudents(Collections.emptySet());
     return course;
   }
 
@@ -92,14 +93,13 @@ public class CourseDaoImpl implements CourseDao {
   }
 
   @Override
-  public void update(long id, Map<String, Object> updates) {
+  public void update(long id, Map<CourseField, Object> updates) {
     List<String> setClauses = new ArrayList<>();
     List<Object> params = new ArrayList<>();
 
     updates.forEach(
         (field, value) -> {
-          if ("course_status".equals(field)) setClauses.add(field + " = ?::course_status");
-          else setClauses.add(field + " = ?");
+          setClauses.add(field + " = ?");
           params.add(value);
         });
 
