@@ -1,6 +1,7 @@
 package com.ifortex.internship.service;
 
 import com.ifortex.internship.dto.CourseDto;
+import com.ifortex.internship.dto.CourseFilterSortDto;
 import com.ifortex.internship.dto.StudentDto;
 import com.ifortex.internship.exception.custom.EnrollmentException;
 import com.ifortex.internship.exception.custom.EnrollmentLimitExceededException;
@@ -80,4 +81,12 @@ public interface CourseService {
    * @throws EnrollmentException if removal fails due to constraints
    */
   Set<StudentDto> removeStudents(long courseId, List<Long> studentIds);
+
+  /**
+   * Retrieves a list of {@link Course}s based on the provided filter and sorting criteria.
+   *
+   * @param courseFilterSortDto the filter and sort criteria encapsulated in a {@link CourseFilterSortDto}
+   * @return a list of {@link CourseDto} objects that match the filter and sorting criteria.
+   */
+  List<CourseDto> findWithParametersAndSort(CourseFilterSortDto courseFilterSortDto);
 }

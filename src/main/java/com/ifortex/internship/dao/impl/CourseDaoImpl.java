@@ -2,6 +2,7 @@ package com.ifortex.internship.dao.impl;
 
 import com.ifortex.internship.dao.CourseDao;
 import com.ifortex.internship.dao.mapper.CourseWithStudentsExtractor;
+import com.ifortex.internship.dto.CourseFilterSortDto;
 import com.ifortex.internship.model.Course;
 import com.ifortex.internship.model.enumeration.CourseField;
 import java.sql.PreparedStatement;
@@ -19,6 +20,23 @@ import org.springframework.stereotype.Repository;
 public class CourseDaoImpl implements CourseDao {
   private final JdbcTemplate jdbcTemplate;
   private final CourseWithStudentsExtractor courseWithStudentsExtractor;
+
+  private final String findAllCoursesSql =
+      """
+SELECT c.id AS course_id,
+       c.name AS course_name,
+       c.description      AS course_description,
+       c.price            AS course_price,
+       c.duration         AS course_duration,
+       c.start_date       AS course_start_date,
+       c.last_update_date AS course_last_update_date,
+       c.course_status    AS course_status,
+       s.id               AS student_id,
+       s.name             AS student_name
+       FROM course c
+       LEFT JOIN course_student cs ON c.id = cs.course_id
+       LEFT JOIN student s ON cs.student_id = s.id
+""";
 
   public CourseDaoImpl(
       JdbcTemplate jdbcTemplate, CourseWithStudentsExtractor courseWithStudentsExtractor) {
@@ -52,44 +70,14 @@ public class CourseDaoImpl implements CourseDao {
 
   @Override
   public Optional<Course> find(long id) {
-    String sql =
-        "SELECT c.id AS course_id, "
-            + "c.name AS course_name, "
-            + "c.description AS course_description, "
-            + "c.price AS course_price, "
-            + "c.duration AS course_duration, "
-            + "c.start_date AS course_start_date, "
-            + "c.last_update_date AS course_last_update_date, "
-            + "c.course_status AS course_status, "
-            + "s.id AS student_id, "
-            + "s.name AS student_name "
-            + "FROM course c "
-            + "LEFT JOIN course_student cs ON c.id = cs.course_id "
-            + "LEFT JOIN student s ON cs.student_id = s.id "
-            + "WHERE c.id = ?";
-
+    String sql = findAllCoursesSql.concat("\nWHERE c.id = ?");
     List<Course> courses = jdbcTemplate.query(sql, courseWithStudentsExtractor, id);
     return courses.stream().findFirst();
   }
 
   @Override
   public List<Course> findAll() {
-    String sql =
-        "SELECT c.id AS course_id, "
-            + "c.name AS course_name, "
-            + "c.description AS course_description, "
-            + "c.price AS course_price, "
-            + "c.duration AS course_duration, "
-            + "c.start_date AS course_start_date, "
-            + "c.last_update_date AS course_last_update_date, "
-            + "c.course_status AS course_status, "
-            + "s.id AS student_id, "
-            + "s.name AS student_name "
-            + "FROM course c "
-            + "LEFT JOIN course_student cs ON c.id = cs.course_id "
-            + "LEFT JOIN student s ON cs.student_id = s.id";
-
-    return jdbcTemplate.query(sql, courseWithStudentsExtractor);
+    return jdbcTemplate.query(findAllCoursesSql, courseWithStudentsExtractor);
   }
 
   @Override
@@ -151,5 +139,53 @@ public class CourseDaoImpl implements CourseDao {
           ps.setLong(1, courseId);
           ps.setLong(2, studentId);
         });
+  }
+
+  @Override
+  public List<Course> findWithParametersAndSort(CourseFilterSortDto courseFilterSortDto) {
+
+    String inlineSql =
+        """
+WHERE c.id IN (SELECT DISTINCT c_inner.id
+               FROM course c_inner
+                        LEFT JOIN
+                    course_student cs ON c_inner.id = cs.course_id
+                        LEFT JOIN
+                    student s_inner ON cs.student_id = s_inner.id
+               WHERE 1 = 1
+""";
+
+    StringBuilder sql = new StringBuilder(findAllCoursesSql).append(inlineSql);
+    List<Object> values = new ArrayList<>();
+
+    if (courseFilterSortDto.getCourseName() != null) {
+      sql.append("and LOWER(c_inner.name) LIKE LOWER(?) ");
+      values.add("%" + courseFilterSortDto.getCourseName() + "%");
+    }
+
+    if (courseFilterSortDto.getCourseDescription() != null) {
+      sql.append("and LOWER(c_inner.description) LIKE LOWER(?) ");
+      values.add("%" + courseFilterSortDto.getCourseDescription() + "%");
+    }
+
+    if (courseFilterSortDto.getStudentName() != null) {
+      sql.append("and LOWER(s_inner.name) LIKE LOWER(?)");
+      values.add("%" + courseFilterSortDto.getStudentName() + "%");
+    }
+
+    sql.append(") ");
+
+    boolean hasSort = false;
+    if (courseFilterSortDto.getSortByDate() != null) {
+      sql.append("ORDER BY c.start_date ").append(courseFilterSortDto.getSortByDate().name());
+      hasSort = true;
+    }
+
+    if (courseFilterSortDto.getSortByName() != null) {
+      sql.append(hasSort ? ", " : "ORDER BY ")
+          .append("c.name ")
+          .append(courseFilterSortDto.getSortByName().name());
+    }
+    return jdbcTemplate.query(sql.toString(), courseWithStudentsExtractor, values.toArray());
   }
 }
