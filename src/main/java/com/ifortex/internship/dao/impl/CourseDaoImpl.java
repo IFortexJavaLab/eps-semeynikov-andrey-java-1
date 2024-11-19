@@ -144,48 +144,45 @@ SELECT c.id AS course_id,
   @Override
   public List<Course> findWithParametersAndSort(CourseFilterSortDto courseFilterSortDto) {
 
-    String inlineSql =
-        """
-WHERE c.id IN (SELECT DISTINCT c_inner.id
-               FROM course c_inner
-                        LEFT JOIN
-                    course_student cs ON c_inner.id = cs.course_id
-                        LEFT JOIN
-                    student s_inner ON cs.student_id = s_inner.id
-               WHERE 1 = 1
-""";
-
-    StringBuilder sql = new StringBuilder(findAllCoursesSql).append(inlineSql);
+    StringBuilder sql = new StringBuilder(findAllCoursesSql).append(" WHERE 1=1");
     List<Object> values = new ArrayList<>();
 
+    if (courseFilterSortDto.getStudentName() != null) {
+      sql.append(
+          """
+             AND c.id IN (
+             SELECT DISTINCT c_inner.id
+             FROM course c_inner
+             LEFT JOIN course_student cs ON c_inner.id = cs.course_id
+             LEFT JOIN student s_inner ON cs.student_id = s_inner.id
+             WHERE LOWER(s_inner.name) LIKE LOWER(?)
+            )
+            """);
+      values.add("%" + courseFilterSortDto.getStudentName() + "%");
+    }
+
     if (courseFilterSortDto.getCourseName() != null) {
-      sql.append("and LOWER(c_inner.name) LIKE LOWER(?) ");
+      sql.append(" AND LOWER(c.name) LIKE LOWER(?)");
       values.add("%" + courseFilterSortDto.getCourseName() + "%");
     }
 
     if (courseFilterSortDto.getCourseDescription() != null) {
-      sql.append("and LOWER(c_inner.description) LIKE LOWER(?) ");
+      sql.append(" AND LOWER(c.description) LIKE LOWER(?)");
       values.add("%" + courseFilterSortDto.getCourseDescription() + "%");
     }
 
-    if (courseFilterSortDto.getStudentName() != null) {
-      sql.append("and LOWER(s_inner.name) LIKE LOWER(?)");
-      values.add("%" + courseFilterSortDto.getStudentName() + "%");
-    }
-
-    sql.append(") ");
-
     boolean hasSort = false;
     if (courseFilterSortDto.getSortByDate() != null) {
-      sql.append("ORDER BY c.start_date ").append(courseFilterSortDto.getSortByDate().name());
+      sql.append(" ORDER BY c.start_date ")
+          .append(courseFilterSortDto.getSortByDate().name().toUpperCase());
       hasSort = true;
     }
-
     if (courseFilterSortDto.getSortByName() != null) {
-      sql.append(hasSort ? ", " : "ORDER BY ")
+      sql.append(hasSort ? ", " : " ORDER BY ")
           .append("c.name ")
-          .append(courseFilterSortDto.getSortByName().name());
+          .append(courseFilterSortDto.getSortByName().name().toUpperCase());
     }
+    sql.append(";");
     return jdbcTemplate.query(sql.toString(), courseWithStudentsExtractor, values.toArray());
   }
 }
