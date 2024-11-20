@@ -38,8 +38,8 @@ public enum ErrorCode {
   /** Error code indicating a validation failure for the {@link CourseDto}. */
   COURSE_DTO_VALIDATION_FAILED(40602, "Validation failed for the provided data"),
 
-  /** Error code indicating a failure when attempting change course after start */
-  COURSE_HAS_ALREADY_STARTED(40602, "Course has already started");
+  /** Error code indicating a failure when attempting change course that is not opened */
+  COURSE_IS_NOT_OPENED(40902, "Can't update the course");
 
   /** The unique error code representing the specific type of error. */
   private final int code;

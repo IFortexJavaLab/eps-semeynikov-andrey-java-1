@@ -76,11 +76,6 @@ SELECT c.id AS course_id,
   }
 
   @Override
-  public List<Course> findAll() {
-    return jdbcTemplate.query(findAllCoursesSql, courseWithStudentsExtractor);
-  }
-
-  @Override
   public void update(long id, Map<CourseField, Object> updates) {
     List<String> setClauses = new ArrayList<>();
     List<Object> params = new ArrayList<>();
@@ -101,18 +96,6 @@ SELECT c.id AS course_id,
   public void delete(long id) {
     String sql = "DELETE FROM course WHERE id = ?";
     jdbcTemplate.update(sql, id);
-  }
-
-  @Override
-  public void enrollStudentInCourse(long courseId, long studentId) {
-    String sql = "INSERT INTO course_student (course_id, student_id) VALUES (?, ?)";
-    jdbcTemplate.update(sql, courseId, studentId);
-  }
-
-  @Override
-  public void removeStudentFromCourse(long courseId, Long studentId) {
-    String sql = "DELETE FROM course_student WHERE course_id = ? AND student_id = ?";
-    jdbcTemplate.update(sql, courseId, studentId);
   }
 
   @Override

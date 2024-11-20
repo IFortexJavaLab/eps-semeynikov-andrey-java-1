@@ -111,28 +111,6 @@ class CourseServiceImplTest {
   }
 
   @Test
-  void testFindAllCourses_Success() {
-    Course course1 = new Course();
-    course1.setId(1L);
-    course1.setName("Java Course");
-
-    Course course2 = new Course();
-    course2.setId(2L);
-    course2.setName("Python Course");
-
-    List<Course> courses = List.of(course1, course2);
-    when(courseDao.findAll()).thenReturn(courses);
-
-    List<CourseDto> result = courseService.findAll();
-
-    assertNotNull(result);
-    assertEquals(2, result.size());
-    assertEquals("Java Course", result.get(0).getName());
-    assertEquals("Python Course", result.get(1).getName());
-    verify(courseDao).findAll();
-  }
-
-  @Test
   void testUpdateCourse_Success() {
     long courseId = 1L;
     CourseDto courseDto = new CourseDto();

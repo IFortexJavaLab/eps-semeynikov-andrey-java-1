@@ -1,7 +1,7 @@
 package com.ifortex.internship.exception.handler;
 
 import com.ifortex.internship.exception.custom.CourseDtoValidationException;
-import com.ifortex.internship.exception.custom.CourseHasAlreadyStartedException;
+import com.ifortex.internship.exception.custom.CourseIsNotOpenedException;
 import com.ifortex.internship.exception.custom.EnrollmentException;
 import com.ifortex.internship.exception.custom.EnrollmentLimitExceededException;
 import com.ifortex.internship.exception.custom.ResourceNotFoundException;
@@ -115,14 +115,14 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Handles {@link CourseHasAlreadyStartedException} and returns a 409 Conflict status.
+   * Handles {@link CourseIsNotOpenedException} and returns a 409 Conflict status.
    *
-   * @param ex the exception indicating a general change Course after the start conflict
+   * @param ex the exception indicating a general change Course which is not opened
    * @return a ResponseEntity containing the ErrorResponse with 409 status
    */
-  @ExceptionHandler(CourseHasAlreadyStartedException.class)
+  @ExceptionHandler(CourseIsNotOpenedException.class)
   public ResponseEntity<ErrorResponse> handleCourseHasAlreadyStartedException(
-      CourseHasAlreadyStartedException ex) {
+      CourseIsNotOpenedException ex) {
     ErrorResponse response = new ErrorResponse(ex.getMessage(), ex.getErrorCode().getCode());
     return new ResponseEntity<>(response, HttpStatus.CONFLICT);
   }

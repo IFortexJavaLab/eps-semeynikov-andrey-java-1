@@ -10,6 +10,7 @@ import com.ifortex.internship.dto.markers.Create;
 import com.ifortex.internship.dto.markers.Update;
 import com.ifortex.internship.exception.codes.ErrorCode;
 import com.ifortex.internship.exception.custom.CourseDtoValidationException;
+import com.ifortex.internship.exception.custom.CourseIsNotOpenedException;
 import com.ifortex.internship.exception.custom.EnrollmentException;
 import com.ifortex.internship.exception.custom.EnrollmentLimitExceededException;
 import com.ifortex.internship.exception.custom.ResourceNotFoundException;
@@ -26,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,13 +67,6 @@ public class CourseServiceImpl implements CourseService {
     return CourseToCourseDtoMapper.convert(course);
   }
 
-  @Override
-  public List<CourseDto> findAll() {
-    return courseDao.findAll().stream()
-        .map(CourseToCourseDtoMapper::convert)
-        .collect(Collectors.toList());
-  }
-
   @Transactional
   @Override
   public CourseDto update(long id, CourseDto courseDto) {
@@ -88,16 +81,46 @@ public class CourseServiceImpl implements CourseService {
             .find(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COURSE_NOT_FOUND, id));
 
-    Map<CourseField, Object> updates = getFieldsForUpdate(courseDto);
+    CourseStatus currentStatus = course.getCourseStatus();
+    CourseStatus newStatus = courseDto.getCourseStatus();
 
-    if (!updates.isEmpty()) {
-      updates.put(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
-      course.setLastUpdateDate(LocalDateTime.now());
-
-      courseDao.update(id, updates);
+    if (currentStatus == CourseStatus.CLOSED) {
+      throw new CourseIsNotOpenedException(ErrorCode.COURSE_IS_NOT_OPENED, "Course is closed");
     }
 
-    CourseToCourseDtoMapper.mapNewDtoFields(course, courseDto);
+    if (currentStatus == CourseStatus.STARTED) {
+      if (newStatus != CourseStatus.CLOSED) {
+        throw new CourseIsNotOpenedException(
+            ErrorCode.COURSE_IS_NOT_OPENED,
+            "Cannot change fields for STARTED course except changing status to CLOSED");
+      }
+
+      Map<CourseField, Object> updates = getFieldsForUpdate(courseDto);
+
+      if (updates.keySet().stream().anyMatch(field -> field != CourseField.COURSE_STATUS)) {
+        throw new CourseIsNotOpenedException(
+            ErrorCode.COURSE_IS_NOT_OPENED,
+            "Cannot change other fields when changing status from STARTED to CLOSED");
+      }
+
+      updates.put(CourseField.COURSE_STATUS, newStatus.name());
+      updates.put(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
+      course.setLastUpdateDate(LocalDateTime.now());
+      course.setCourseStatus(newStatus);
+      courseDao.update(id, updates);
+      CourseToCourseDtoMapper.mapNewDtoFields(course, courseDto);
+    } else {
+
+      Map<CourseField, Object> updates = getFieldsForUpdate(courseDto);
+
+      if (!updates.isEmpty()) {
+        updates.put(CourseField.LAST_UPDATE_DATE, LocalDateTime.now());
+        course.setLastUpdateDate(LocalDateTime.now());
+        courseDao.update(id, updates);
+      }
+
+      CourseToCourseDtoMapper.mapNewDtoFields(course, courseDto);
+    }
 
     return courseDto;
   }
@@ -150,8 +173,12 @@ public class CourseServiceImpl implements CourseService {
   @Override
   public Set<StudentDto> removeStudents(long courseId, List<Long> studentIds) {
 
-    studentIds = validateStudentIds(studentIds);
     CourseDto course = find(courseId);
+    if (course.getCourseStatus() != CourseStatus.OPENED) {
+      throw new EnrollmentException(ErrorCode.ENROLLMENT_FAILED, "Course is not opened");
+    }
+
+    studentIds = validateStudentIds(studentIds);
     List<Long> enrolledStudentIds = course.getStudents().stream().map(StudentDto::getId).toList();
 
     List<Long> notEnrolledStudentIds =

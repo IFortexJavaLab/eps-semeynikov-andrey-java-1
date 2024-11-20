@@ -14,8 +14,8 @@ import java.util.Set;
 
 /**
  * Service interface for handling operations related to courses. Provides methods for creating,
- * updating, finding, and deleting {@link Course}s, as well as enrolling and removing {@link Student}s from a
- * course.
+ * updating, finding, and deleting {@link Course}s, as well as enrolling and removing {@link
+ * Student}s from a course.
  */
 public interface CourseService {
 
@@ -35,13 +35,6 @@ public interface CourseService {
    * @throws ResourceNotFoundException if the course is not found
    */
   CourseDto find(long id);
-
-  /**
-   * Retrieves list of all courses.
-   *
-   * @return a list of CourseDto representing all courses
-   */
-  List<CourseDto> findAll();
 
   /**
    * Updates the details of a specific course.
@@ -85,7 +78,8 @@ public interface CourseService {
   /**
    * Retrieves a list of {@link Course}s based on the provided filter and sorting criteria.
    *
-   * @param courseFilterSortDto the filter and sort criteria encapsulated in a {@link CourseFilterSortDto}
+   * @param courseFilterSortDto the filter and sort criteria encapsulated in a {@link
+   *     CourseFilterSortDto}
    * @return a list of {@link CourseDto} objects that match the filter and sorting criteria.
    */
   List<CourseDto> findWithParametersAndSort(CourseFilterSortDto courseFilterSortDto);
