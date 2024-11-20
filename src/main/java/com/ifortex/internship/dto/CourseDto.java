@@ -37,7 +37,6 @@ public class CourseDto {
       groups = {Update.class, Create.class})
   private String name;
 
-  @NotNull(message = "Description can't be null", groups = Create.class)
   @Size(
       max = 300,
       message = "Description must be at most 300 characters",
