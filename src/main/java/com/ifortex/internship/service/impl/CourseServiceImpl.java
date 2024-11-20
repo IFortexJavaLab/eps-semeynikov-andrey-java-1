@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,13 +64,6 @@ public class CourseServiceImpl implements CourseService {
             .find(id)
             .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COURSE_NOT_FOUND, id));
     return CourseToCourseDtoMapper.convert(course);
-  }
-
-  @Override
-  public List<CourseDto> findAll() {
-    return courseDao.findAll().stream()
-        .map(CourseToCourseDtoMapper::convert)
-        .collect(Collectors.toList());
   }
 
   @Transactional
